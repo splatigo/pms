@@ -1,0 +1,115 @@
+extends layout
+block append head
+    script(type='text/javascript', src='js/index.js')
+block content
+    div(class="alert alert-danger err-msg hd" role="alert")
+        p(class="err-content")
+       
+        span(class="close-x") &times
+ 
+    div(class="alert alert-success success-msg hd" role="alert")
+        
+        p(class="success-content")
+        
+        span(class="close-x") &times
+    div(id="container")
+        div(style="max-width:800px;margin:0px auto;padding:10px" id="login-div" class="child-div")
+            div(class="card card-primary")
+                div(class="card-header bg-primary text-white") Login
+                div(class="card-body")
+                    form
+                        div(class="form-group row")
+                            label(class="col-sm-3") Phone
+                            div(class="col-sm-9")
+                                input(type="text" class="form-control" id="login-username")
+                        div(class="form-group row")
+                            label(class="col-sm-3") Password
+                            div(class="col-sm-9")
+                                input(type="password" class="form-control" id="login-password")
+                        div(class="form-group row")
+                            label(class="col-sm-3")
+                            div(class="col-sm-9")
+                                button(type="button" class="btn btn-primary form-control" id="login-btn") Login
+                    button(class="btn btn-success go-to-register") <i class='fa fa-user-plus'></i> Register
+                    p(align='right' style="padding-top:20px") Lost your password?, <span style='background:orange;color:#fff;border-radius:5px;padding:10px;cursor:pointer' class="reset-password"> Reset Now</span>
+                    div(class="modal fade" id="req-pw-div" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true")
+                        div(class="modal-dialog")
+                            div(class="modal-content")
+                                div(class="modal-header")
+                                    button(type="button" class="close" data-dismiss="modal" aria-hidden="true") &times;
+                                    h4(class="modal-title") Enter your Username
+                                div(class="modal-body")
+                                    table(style="width:100%" align="center")
+                                        tr
+                                            td
+                                                input(class="form-control" id="memid" placeholder="Username")
+                                            td(style="width:120px;padding-left:10px")
+                                                button(class="btn btn-primary" id="go-to-pass") Submit
+                                    
+        div(style="max-width:800px;margin:0px auto;padding:10px" id="reset-div" class="child-div hd")
+            div(class="card card-primary")
+                div(class="card-header bg-primary text-white") Reset Password
+                div(class="card-body")
+                    form
+                        
+                        div(class="form-group row")
+                            label(class="col-sm-3") Phone
+                            div(class="col-sm-9")
+                                input(type="tel" class="form-control" id="reset-phone")
+                        
+                        div(class="form-group row")
+                            label(class="col-sm-3")
+                            div(class="col-sm-9")
+                                button(type="button" class="btn btn-primary form-control req-reset-code") Submit
+        div(style="max-width:800px;margin:0px auto;padding:10px" id="register-div" class="child-div hd")
+            div(class="card card-primary")
+                div(class="card-header bg-primary text-white") Register for an Account
+                div(class="card-body")
+                    form
+                        div(class="form-group row")
+                            label(class="col-sm-3") Name
+                            div(class="col-sm-9")
+                                input(type="text" class="form-control" id="register-name")
+                        div(class="form-group row")
+                            label(class="col-sm-3") Phone
+                            div(class="col-sm-9")
+                                input(type="tel" class="form-control" id="register-phone")
+                        
+                        div(class="form-group row")
+                            label(class="col-sm-3")
+                            div(class="col-sm-9")
+                                button(type="button" class="btn btn-primary form-control" id="register-btn") Register
+                    
+                    p(align='right' style="padding-top:20px") Have an account? 
+                        button(class="btn btn-success go-to-login") <i class='fa fa-user-circle'></i> Login
+        div(class="modal fade " id="confirm-phone-div")
+            div(class="modal-dialog modal-sm")
+                div(class="modal-content")
+                    div(class="modal-body" style="text-align:center")
+                        p(id="confirm-text")
+                        button(class="btn btn-primary" data-dismiss="modal") Edit
+                        span(style="padding-left:30px")
+                        button(class="btn btn-success" id="confirm-register") Ok
+        div(style="max-width:800px;margin:0px auto;padding:10px" class="child-div hd" id="verification-div" )
+            div( class="card card-primary" )
+                div(class="card-header bg-primary text-white") Enter SMS Verification Code
+                div(class="card-body")
+                    form(class="form-inline")
+                        label(class="sr-only") Verification Code
+                        input(id="reset-code" class="form-control mb-2 mr-sm-2" placeholder="SMS Code")
+                        button(class="btn btn-primary mb-2" id="submit-reset-code" type="button") Submit
+                    p(align='right' style="padding-top:20px") Didn't Recieve
+                        button(class="btn btn-success send-reset-code") <i class='fa fa-refresh'></i> Resend
+        div(style="max-width:800px;margin:0px auto;padding:10px" class="child-div hd" id="new-password-div" )
+            div( class="card card-primary" )
+                div(class="card-header bg-primary text-white") Set Password
+                div(class="card-body")
+                    form(class="form-inline")
+                        label(class="sr-only") Password
+                        input(id="new-password" class="form-control mb-2 mr-sm-2" placeholder="Password")
+                        button(type="button" class="btn btn-primary mb-2" id="submit-new-password") Submit
+
+        
+
+                            
+        

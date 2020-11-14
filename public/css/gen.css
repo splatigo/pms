@@ -1,0 +1,13 @@
+.hd{
+	display: none;
+}
+.err-msg,.success-msg{
+	z-index:100000;position:fixed;top:60;width:100%
+}
+.close-x{
+	position: absolute;
+	top:5px;
+	right: 10px;
+	font-size: 20px;
+	cursor: pointer;
+}

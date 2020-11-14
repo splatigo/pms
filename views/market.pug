@@ -1,0 +1,16 @@
+extends layout
+block append head
+    script(type='text/javascript', src='js/index.js')
+block content
+    div(class="alert alert-danger err-msg hd" role="alert")
+        p(class="err-content")
+       
+        span(class="close-x") &times
+ 
+    div(class="alert alert-success success-msg hd" role="alert")
+        
+        p(class="success-content")
+        
+        span(class="close-x") &times
+    div(id="container")
+        h2 Market Place
