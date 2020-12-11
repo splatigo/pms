@@ -5,6 +5,7 @@ var admin=require("./routes/admin")
 var auth=require("./routes/auth")
 var db   = require('./routes/db');
 var market=require("./routes/market")
+var group_portal=require("./routes/group-portal")
 //var bodyParser = require('body-parser')
 var http = require('http');
 var path = require('path');
@@ -44,25 +45,34 @@ app.use(cookieParser());
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(fileUpload());
+app.get("/gen",db.index)
 app.get("/market",market.index)
+app.get("/group",group_portal.index)
+app.post("/group",group_portal.index)
 app.get("/",routes.index)
 app.post("/admin",admin.index)
+app.get("/admin",admin.index)
+var supplier=require("./routes/supplier")
+app.post("/supplier",supplier.index)
+app.get("/supplier",supplier.index)
 app.get("/auth",auth.index)
 app.post('/auth-sign',function(req, res, next) {
       passport.authenticate('user', function(err, user, info) {
-      			
-              if (err) { return next(err); }
+              
+              if (err) { return next(err);}
+
               if (!user) { 
                 res.send({msg:"fail"})
                 return 0;
               }
               req.logIn(user, function(err) {
                 res.cookie("user",user)
-              	res.send({msg:"ok",user:user})
+                res.send({msg:"ok",user:user})
                      
               });
       })(req, res, next);   
 })
+
 app.get("/signout",function (req,res) {
   if(req.cookies.user){
 
@@ -74,56 +84,166 @@ app.get("/signout",function (req,res) {
     var user=req.user;
   req.logout()
   res.cookie("user","")
-  if(user.priv&&user.priv==1)
-    res.redirect("/auth")
+  res.redirect("/")
 })
+
 passport.use("user",new LocalStrategy(function(username,password,done){
-    connection.query("SELECT *FROM users WHERE phone=? AND password=SHA1(?)",[username,password],function(err,rst){
-            if(err){console.log("Error"+err); return done(err)}
+    var pref=username.substring(0,2).toUpperCase()
+    username=username.substring(2,username.length)
+    if(pref=="GM"){
+      var type="group_members"
+      var priv="gm"
+      var table="group_members"
+    }
+    else if(pref=="SP"){
+      var table="suppliers"
+      var type="suppliers"
+      var priv="supplier"
+    }
+    else if(pref=="AD"){
+      var table="admins"
+      var priv="admin"
+      var type="admins"
+    }
+    else{
+      var priv="customer"
+      var type="customers"
+      table="customers"
+    }
+    connection.query("SELECT *FROM "+table+" WHERE (phone=? OR username=?) AND password=SHA1(?)",[username,username,password],function(err,rst){
+            if(err){
+              return console.log(err.sqlMessage); 
+            //return done(err)
+          }
             if(rst.length>0)
             {
-                var user={id:rst[0]["id"],username:rst[0].username,password:password,name:rst[0].name,phone:rst[0].phone,gender:rst[0].gender,priv:rst[0].priv}
+                var user=rst[0]
+                user.priv=priv
+                user.type=type
                 return done(null,user);
             }
-            else
-            { 
-                return done(null,false);
+      
+            else{
+               return done(null,false);
             }
     })
 }));
 passport.serializeUser(function(user, done) {
         var key = {
           id: user.id,
-          type: user.type
+          type: user.type,
+          priv:user.priv
         }
         done(null, key);
 });
 passport.deserializeUser(function(key,done){
     var id=key.id
+  var q="SELECT *FROM "+key.type+" WHERE id=?";
+   connection.query(q,[id],function(err,rst){
+    console.log(key.type,rst,err)
+   var user=rst[0];
+   user.priv=key.priv;
 
-	var q='SELECT *FROM users WHERE id=?';
-	 connection.query(q,[id],function(err,rst){
-	     
-	       if(err){
-	            return console.log(err)
-	        }
-	      var user={id:rst[0]["id"],username:rst[0]["username"],name:rst[0]["name"],gender:rst[0].gender,priv:rst[0].priv,phone:rst[0].phone}
-	       done(null,user)
-	 })
+   if(err){
+              return console.log(err)
+     }
+      return done(null,user);
+   })
 });//deserialize
 
-function gen_pass() {
+function gen_pass(n) {
   
    var result           = '';
    var characters       = '123456789';
    var charactersLength = characters.length;
-   for ( var i = 0; i < 6; i++ ) {
+   if(!n)
+    n=6
+
+   for ( var i = 0; i < n; i++ ) {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
    }
    return result;
 }
+app.get("/testmm",function (argument) {
+  test_mm(req,res)
+  res.end("Done!")
+})
+//test_mm()
+function test_mm(req,res) {
+  var consumerKey="TAjCVCN8tqcGCVmgIdyuGzi9OT1592848007";
+  var consumerSecret="olxejsJMwPrzuk8C5R7VyE5ZHY1592848007"
 
+  var url = "https://vendors.pay-leo.com/api/v2/test/deposit";
+  var msisdn="256785967798"
+  var amount="10000"
+  var merchantCode="36048"
+  var transactionId=gen_pass(15)
+  var narration="Payment"
+  var data=url+"&"+msisdn+"&"+amount+"&"+merchantCode+"&"+transactionId+"&"+narration;
+  var signature=signHmacSha256(consumerSecret,data)
+  var parameters={
+    msisdn:msisdn,
+    amount:amount,
+    merchantCode:merchantCode,
+    auth_signature:signature,
+    transactionId:transactionId,
+    consumerKey:consumerKey,
+    narration:narration
+  }
 
+  var path="/api/v2/test/deposit/?";
+  var hostname="vendors.pay-leo.com"
+  var headers={
+      'Content-Type': 'application/json',
+      'Content-Length': JSON.stringify(parameters).length
+  }
+  //post_req(parameters,hostname,path,headers)
+  post_axios(parameters,res)
+}
+function post_axios(parameters,res) {
+  const axios = require('axios')
+
+  axios
+    .post('https://vendors.pay-leo.com/api/v2/test/deposit/', parameters)
+    .then(res => {
+      console.log(`statusCode: ${res.statusCode}`)
+      console.log(res.data)
+
+    })
+    .catch(error => {
+      console.error(error)
+    })
+}
+function post_req(parameters,hostname,path,headers) {
+  const querystring = require('querystring');
+  const get_request_args = querystring.stringify(parameters);
+  const options = {
+    hostname: hostname,
+    port:443,
+    path: path + get_request_args,
+    method: 'POST',
+    headers:headers
+  }
+  const request = http.request(options, (response) => {
+    // response from server
+    console.log(response)
+   
+  });
+
+  // In case error occurs while sending request
+  request.on('error', (error) => {
+
+    console.log(error.message);
+  });
+
+  request.end();
+}
+function signHmacSha256(key, str) {
+  const crypto = require("crypto");
+  let hmac = crypto.createHmac("sha256", key);
+  let signed = hmac.update(Buffer.from(str, 'utf-8')).digest("hex");
+  return signed
+}
 var server=app.listen(3000,function  () {
   console.log("App Listening on port 3000")
 })

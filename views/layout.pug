@@ -3,17 +3,42 @@ html(lang="en")
   block head
     meta(meta charset="utf-8")
     meta(name="viewport" content="width=device-width, initial-scale=1")
+    
     script(src="/libs/jquery.js")
     link(link rel="stylesheet" type="text/css" href="/libs/bootstrap/css/bootstrap.min.css")
+    link(link rel="stylesheet" type="text/css" href="/libs/datepicker/css/bootstrap-datepicker.min.css")
     link(link rel="stylesheet" type="text/css" href="/libs/fa/css/font-awesome.min.css")
-    link( type="image/x-icon" rel="shortcut icon" href="/img/logo.png")
+    link( type="image/x-icon" rel="shortcut icon" href="/img/logo.PNG")
     script(src="/js/gen.js")
     script(src="/libs/chartjs/dist/chart.min.js")
     script(src="/libs/chartjs/utils.js")
+    script(src="/libs/bootstrap/js/popper.min.js")
     script(src="/libs/bootstrap/js/bootstrap.min.js")
+    script(src="/libs/datepicker/js/bootstrap-datepicker.min.js")
     link(link rel="stylesheet" type="text/css" href="/css/gen.css")
     -title="PMS"
     title=title
   body
+        div(class="modal fade" tabindex="-1" aria-labelledby="confirm-axn-div" aria-hidden="true" id="confirm-axn-div")
+                div(class="modal-dialog")
+                    div(class="modal-content")
+                        div(class="modal-body")
+                            p(id="confirm-axn-content")
+                        div(class="modal-footer")
+                            button(class="btn btn-primary" id="yeah") Yes
+                            button(class="btn btn-secondary" data-dismiss="modal" id="nope") No
+        form(id="goto-group-form" method="POST" action="/group")
+            input(type="hidden" name="group_id" id="group-id") 
+        div(id="loading-div")
+            div(class="d-flex justify-content-center")
+                div(class="spinner-border" role="status" id="spinner")
+                    span(class="sr-only")
+
+            p(align="center" id="loading-text") Connecting...
+        div(class="alert alert-danger err-msg hd alert-msg" role="alert")
+            p(class="err-content")
+        div(class="alert alert-success success-msg hd alert-msg" role="alert")
+            p(class="success-content")
         block content
+            
         

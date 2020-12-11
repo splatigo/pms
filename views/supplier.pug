@@ -1,0 +1,151 @@
+extends layout
+block append head
+    script(type='text/javascript', src='js/supplier.js')
+block content
+    div(class="alert alert-danger err-msg hd" role="alert")
+        p(class="err-content")
+       
+        span(class="close-x") &times
+ 
+    div(class="alert alert-success success-msg hd" role="alert")
+        
+        p(class="success-content")
+        span(class="close-x") &times
+    div(class="header")
+        nav(class="navbar navbar-expand-lg navbar-dark bg-custom")
+            a(class="navbar-brand a-dashboard" href="#")
+        
+                img(src="/img/icon.PNG" class="logo")
+                span(style='padding-left:10px') Transpay PMS
+            button(class="navbar-toggler" type="button" data-toggle="collapse" data-target="#nav-content" aria-controls="nav-content" aria-expanded="false" aria-label="Toggle navigation")
+                span(class="navbar-toggler-icon")
+            div(class="collapse navbar-collapse" id="nav-content")
+                ul(class="navbar-nav mr-auto")
+                    
+                    li(class="nav-item dropdown")
+                        a(class="nav-link dropdown-toggle" id="a-orders" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false") 
+                            span(class="fa fa-outdent") 
+                            span  Orders
+                        div(class="dropdown-menu" aria-labelledby="a-orders")
+                            a(href="#" class='dropdown-item collapse-navbar' onclick="view_supply_orders('Out for Delivery')") Pending Orders
+                            a(href="#"  class='dropdown-item collapse-navbar' onclick="view_supply_orders('Delivered')") Delivered
+                    li(class="nav-item dropdown hd" id="my-groups-li")
+                        a(class="nav-link dropdown-toggle a-my-groups" href="#" id="a-my-groups" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false")
+
+                            span(class="fa fa-modx")
+                            span  My Groups
+                        div(class="dropdown-menu" aria-labelledby="a-my-groups" id="my-groups-div")
+                ul(class="navbar-nav ml-auto")
+                    li(class="nav-item dropdown user-li hd")
+                        a(class="nav-link dropdown-toggle" href="#" id="a-user-options" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false")
+                            span(class="fa fa-user")
+                            span(id="my-name")
+                        div(class="dropdown-menu" aria-labelledby="a-user-options" id="user-options")
+                            a(href="#" class="dropdown-item") <i class='fa fa-user-o'></i> Profile
+                            a(href="#" class="dropdown-item confirm-axn" axn='signout') <i class='fa fa-sign-out'></i> Signout
+                    
+    div(class="container")
+        p
+        div(class="cd" id="dashboard")
+            div(class="card card-prmary")
+                div(class="card-header bg-custom text-white") <span class='fa fa-dashboard'></span>  <span id="business-name"></span> / Dashboard
+                div(class="card-body")
+                    div(class="row row-cols-1 row-cols-md-2")
+                        
+                        div(class="col mb-6")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center")
+                                        span(class="fa fa-outdent ")
+                                   
+                                        span  Pending Orders
+
+                                div(class="card-body cb-link" onclick="view_supply_orders('Out for Delivery')")
+                                    p(align='center' style="font-size:20px;")
+                                        span(id="db-supply-orders-out-for-delivery")
+                        div(class="col mb-6")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center")
+                                        span(class="fa fa-outdent ")
+                                   
+                                        span  Orders Delivered
+
+                                div(class="card-body cb-link" onclick="view_supply_orders('Delivered')")
+                                    p(align='center' style="font-size:20px;")
+                                        span(id="db-supply-orders-delivered")
+        div(class="cd hd" id="supply-orders-div")
+            div(class="card card-prmary")
+                div(class="card-header bg-custom text-white")
+                    h5
+                        span(class="fa fa-filter")
+                        span(id="supply-orders-curr-status")
+                div(class="card-body")
+                   
+                     
+                           
+                    button(class="btn btn-primary" onclick="change_supply_orders_status('Delivered')" id="chx-status-btn") Mark as Delivered
+                    p
+                    div(class="table-responsive")
+                        table(id="supply-orders-table" class="table table-striped")
+                    p(class="alert alert-info hd" id="no-supply-orders") No supply orders in selected category
+        div(class="modal fade" tabindex="-1" aria-labelledby="profile-div" aria-hidden="true" id="profile-div")
+                div(class="modal-dialog")
+                    div(class="modal-content")
+                        div(class="modal-header")
+                            h5(class="modal-title") Profile
+                            button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                                span(aria-hidden="true") &times;
+                        div(class="modal-body")
+                            table
+                                tr
+                                    td Name
+                                    td(id="name")
+                                tr
+                                    td Business Name
+                                    td(id="business-name")
+                                tr
+                                    td Phone
+                                    td(id="phone")
+                                tr
+                                    td Other Phone
+                                    td(id="other-phone")
+                                tr
+                                    td Email
+                                    td(id="email")
+                                tr
+                                    td District
+                                    td(id="district")
+                                tr
+                                    td County
+                                    td(id="county")
+                                tr
+                                    td Subcounty
+                                    td(id="sub-county")
+                                tr
+                                    td Parish
+                                    td(id="parish")
+                                tr
+                                    td Village
+                                    td(id="village")
+
+                            
+        div(class="modal fade" tabindex="-1" aria-labelledby="change-pass-div" aria-hidden="true" id="change-pass-div")
+                div(class="modal-dialog")
+                    div(class="modal-content")
+                        div(class="modal-header")
+                            h5(class="modal-title") Change Password
+                            button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                                span(aria-hidden="true") &times;
+                        div(class="modal-body")
+                            form
+                                div(class="form-group row")
+                            
+                                    div(class="col-sm-4")
+                                        
+                                        input(id="old-pass" class="form-control")
+                                    div(class="col-sm-4")
+                                        
+                                        input(id="new-pass" class="form-control")
+                                    div(class="col-sm-4")
+                                        button(type="button" class="btn btn-primary form-control" onclick="change_pass()") Submit

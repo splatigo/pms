@@ -1,5 +1,5 @@
 {
-  "name": "PMS",
+  "name": "pms",
   "nodemonConfig": {
     "ignore": [
       "public/*",
@@ -8,9 +8,11 @@
     "delay": "2500"
   },
   "scripts": {
-    "serve": "nodemon app.js"
+    "serve": "nodemon app.js",
+    "scss": "node-sass --watch scss -o css"
   },
   "dependencies": {
+    "axios": "^0.21.0",
     "connect-flash": "^0.1.1",
     "cookie-parser": "^1.4.5",
     "express": "^4.17.1",
@@ -18,9 +20,24 @@
     "express-session": "^1.17.1",
     "multer": "^1.4.2",
     "mysql": "^2.18.1",
+    "node-sass": "^5.0.0",
     "nodemon": "^2.0.6",
     "passport": "^0.4.1",
     "passport-local": "^1.0.0",
     "pug": "^3.0.0"
-  }
+  },
+  "version": "1.0.0",
+  "description": "Poultry management system",
+  "main": "app.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/splatigo/pms.git"
+  },
+  "author": "Bitscape Technologies",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/splatigo/pms/issues"
+  },
+  "homepage": "https://github.com/splatigo/pms#readme"
 }

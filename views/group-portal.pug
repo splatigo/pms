@@ -1,0 +1,496 @@
+extends layout
+block append head
+    script(type='text/javascript', src='js/group-portal.js')
+block content
+    input(id="h-group-id" value=group_id type="hidden")
+    div(class="header")
+        nav(class="navbar navbar-expand-lg navbar-dark bg-custom")
+            a(class="navbar-brand a-dashboard" href="#")
+                img(src="/img/icon.PNG" class='logo')
+                span(style="padding-left:5px") Transpay PMS
+            button(class="navbar-toggler" type="button" data-toggle="collapse" data-target="#nav-content" aria-controls="nav-content" aria-expanded="false" aria-label="Toggle navigation")
+                span(class="navbar-toggler-icon")
+            div(class="collapse navbar-collapse" id="nav-content")
+                ul(class="navbar-nav mr-auto")
+                    
+                    li(class="nav-item")
+                        a(class="nav-link view-stock collapse-navbar" href="#")
+                            span(class="fa fa-th")
+                            span  View Stock
+                    li(class="nav-item")
+                        a(class="nav-link view-orders" href="#") 
+                            span(class="fa fa-viacoin") 
+                            span  Supplies
+                    li(class="nav-item")
+                        a(class="nav-link a-members collapse-navbar" href="#") 
+                            span(class="fa fa-group") 
+                            span  Members
+                    li(class="nav-item")
+                        a(class="nav-link a-get-chicken-status collapse-navbar" href="#") 
+                            span(class="fa fa-paw") 
+                            span  Chicken Status
+                    li(class="nav-item hd" id="li-admin")
+                        a(class="nav-link" href="/admin")
+
+                            span(class="fa fa-linux")
+                            span  Admin Portal
+                ul(class="navbar-nav ml-auto")
+                    li(class="nav-item dropdown")
+                        a(class="nav-link dropdown-toggle" href="#" id="a-user-options" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false")
+                            span(class="fa fa-user")
+                            span(id="my-name")
+                        div(class="dropdown-menu" aria-labelledby="a-user-options" id="user-options")
+                            a(href="#" class="dropdown-item") <i class='fa fa-user-o'></i> Profile
+                            a(href="#" class="dropdown-item confirm-axn" axn='signout') <i class='fa fa-sign-out'></i> Signout
+
+                          
+                    
+
+    div(class="container")
+        br
+        div(class="child-div" id="dashboard")
+            div(class="card card-prmary")
+                div(class="card-header bg-custom text-white") <span class='fa fa-dashboard'></span>  <span id="group-name"></span> / Dashboard
+                div(class="card-body")
+                    div(class="row row-cols-1 row-cols-md-4")
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center")
+                                        span(class="fa fa-group ")
+                                   
+                                        span  Members
+
+                                div(class="card-body cb-link a-members")
+                                    p(align='center' style="font-size:25px;")
+                                        span(id="db-members-count")
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center")
+                                            span(class="fa fa-thumbs-o-up")
+                                       
+                                            span  Paid Stock
+                                div(class="card-body")
+                                    p(align='center' style="font-size:15px;d")
+                                        span(id="db-paid")
+                                    
+
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center")
+                                        span(class="fa fa-hourglass-1")
+                                   
+                                        span  Stock Pending Approval
+                                div(class="card-body")
+                                    p(align='center' style="font-size:15px;")
+                                         
+                                        span(id="db-pending-approval")
+                                    
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center")
+                                        span(class="fa fa-hourglass-2")
+                                    
+                                        span  Stock Pending Payment
+                                div(class="card-body")
+                                    p(align='center' style="font-size:15px;")
+                                        span(id="db-pending-payment")
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center") <i class="fa fa-steam-square"></i> Supplies for Approval
+                                div(class="card-body")
+                                    p(align='center' style="font-size:15px;")
+                                        span(id="db-orders-pending-approval")
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center") <i class="fa fa-steam-square"></i> Supplies Pending Delivery
+
+                                div(class="card-body")
+                                    p(align='center' style="font-size:15px;")
+                                        span(id="db-orders-pending-delivery")
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center") <i class="fa fa-steam-square"></i> Supplies Out for Delivery
+                                div(class="card-body")
+                                    p(align='center' style="font-size:15px;")
+                                        span(id="db-orders-out-for-delivery")
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center") <i class="fa fa-steam-square"></i> Supplies Delivered
+                                div(class="card-body")
+                                    p(align='center' style="font-size:15px;")
+                                        span(id="db-orders-delivered")
+                                    
+        div(class="hd  child-div" id="members-div")
+
+            button(class="btn btn-primary leader-item" id="a-add-new-member") <i class="fa fa-plus"></i> Add New Member
+            p
+            div(class="card card-prmary")
+                div(class="card-header bg-custom text-white") Group Members
+                div(class="card-body")
+                    div(class="table-responsive")
+                        table(id="members-table" class="table")
+                    p(id="no-members" class="alert alert-info hd") No members added to this group yet
+        
+        div(class="hd child-div" id="stock-div")
+            table
+                tr
+                    td
+                        button(class="btn btn-primary a-add-stock") <i class="fa fa-plus"></i> New Stock
+                    
+            p
+               
+            div(class="card card-prmary")
+                div(class="card-header bg-custom text-white") Stock
+
+                div(class="card-body")
+                    div(class="table-responsive")
+                        table(id="stock-table" class="table")
+                    p(id="no-stock" class="alert alert-info hd") No stock has been added yet
+        div(class="hd  child-div" id="chicken-status-div")
+
+            button(class="btn btn-primary leader-item" id="a-new-cs") <i class="fa fa-plus"></i> New Status Record
+            p
+            div(class="card card-prmary")
+                div(class="card-header bg-custom text-white") Chicken Status
+                div(class="card-body")
+                    div(class="table-responsive")
+                        table(id="chicken-status-table" class="table")
+                    p(id="no-chicken-status" class="alert alert-info hd") No status added
+        div(class="modal fade" tabindex="-1" aria-labelledby="cs-modal" aria-hidden="true" id="cs-modal")
+            div(class="modal-dialog" )
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h5(class="modal-title") New Status Record
+                        button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                    div(class="modal-body")
+                        form
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Year
+                                div(class="col-sm-8")
+                                    select(class="form-control cs-year" id="cs-year")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Month
+                                div(class="col-sm-8")
+                                    select(class="form-control cs-month" id="cs-month")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Week
+                                div(class="col-sm-8")
+                                    select(class="form-control" id="cs-week")
+                                        option(value="0")
+                                        option(value="1") Week 1
+                                        option(value="2") Week 2
+                                        option(value="3") Week 3
+                                        option(value="4") Week 4
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Healthy
+                                div(class="col-sm-8")
+                                    input(type="number" class="form-control" id="cs-healthy" placeholder="Healthy")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Sick
+                                div(class="col-sm-8")
+                                    input(type="number" class="form-control" id="cs-sick" placeholder="Sick")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Dead
+                                div(class="col-sm-8")
+                                    input(type="number" class="form-control" id="cs-dead" placeholder="Dead")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label leader-item") Member
+                                div(class="col-sm-8")
+                                    select(id="cs-member-id" class="form-control leader-item members")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label")
+                                div(class="col-sm-8")
+                                    button(type="button" class="btn btn-primary form-control" id="save-cs") Save Record
+        div(class="hd child-div" id="orders-div")
+            table
+                tr
+                    td
+                        button(class="btn btn-primary a-add-order") <i class="fa fa-plus"></i> New Order
+                    
+            p
+               
+            div(class="card card-prmary")
+                div(class="card-header bg-custom text-white") Orders
+
+                div(class="card-body")
+                    div(class="table-responsive")
+                        table(id="orders-table" class="table")
+                    p(id="no-orders" class="alert alert-info hd") No orders have been made yet
+
+
+        div(class="modal fade" tabindex="-1" aria-labelledby="new-stock-div" aria-hidden="true" id="new-stock-div")
+            div(class="modal-dialog" )
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h5(class="modal-title") New Stock
+                        button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                    div(class="modal-body")
+                        form
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Quantity
+                                div(class="col-sm-8")
+                                    input(type="number" class="form-control" id="n-qty" placeholder="Quantity")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label leader-item") Member
+                                div(class="col-sm-8")
+                                    select(id="member-id" class="form-control leader-item")
+
+
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label")
+                                div(class="col-sm-8")
+                                    button(type="button" class="btn btn-primary form-control" id="add-stock-btn") Add Stock
+        div(class="modal fade" tabindex="-1" aria-labelledby="new-order-div" aria-hidden="true" id="new-order-div")
+            div(class="modal-dialog" )
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h5(class="modal-title") New Supply Order
+                        button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                    div(class="modal-body")
+                        form
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") No. of Hens
+                                div(class="col-sm-8")
+                                    input(type="number" class="form-control" id="n-order-qty" placeholder="Quantity")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label leader-item") Member
+                                div(class="col-sm-8")
+                                    select(id="order-member-id" class="form-control leader-item")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label")
+                                div(class="col-sm-8")
+                                    button(type="button" class="btn btn-primary form-control" id="add-order-btn") Place order
+        
+        
+        div(class="modal fade" tabindex="-1" aria-labelledby="add-new-member-div" aria-hidden="true" id="add-new-member-div" data-backdrop="static")
+            div(class="modal-dialog modal-lg modal-dialog-scrollable" )
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h5(class="modal-title" id="add-new-member-hdr") Add New Member
+                        button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                    div(class="modal-body")
+                        form
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Name
+                                div(class="col-sm-8")
+                                    input(type="text" class="form-control" id="member-name" placeholder="Name" required)
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Email
+                                div(class="col-sm-8")
+                                    input(type="text" class="form-control" id="email" placeholder="Email" required)
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Primary Phone Number
+                                div(class="col-sm-8")
+                                    input(type="text"  class="form-control" id="phone" placeholder="Phone" required)
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Other Phone Number
+                                div(class="col-sm-8")
+                                    input(type="text" class="form-control" id="other-phone" placeholder="Other Phone" required)
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Date of Birth
+                                div(class="col-sm-8")
+                                    table(style="width:100%")
+                                        tr
+                                            td
+                                                select(id="day" class="form-control day" )
+                                            td
+                                                select(id="month" class="form-control month")
+                                            td
+                                                select(id="year" class="form-control year")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Gender
+                                div(class="col-sm-8")
+                                   select(id="gender" class="form-control" required)
+                                    option(value=0)
+                                    option(value="Male") Male
+                                    option(value="Female") Female
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Marital Status
+                                div(class="col-sm-8")
+                                   select(id="marital-status" class="form-control")
+                                    option(value="0")
+                                    option(value="Married") Married
+                                    option(value="Not married") Not married
+                            div(class="form-group row ")
+                                label(class="col-sm-4 col-form-label spouse-div hd") Name of Spouse
+                                div(class="col-sm-8 spouse-div hd")
+                                    input(type="text"  id="spouse" placeholder="Spouse" class="form-control")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") No. Dependants
+                                div(class="col-sm-8")
+                                    input(type="number"  id="dependants" placeholder="Eg. 3" class="form-control" )
+                            
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Disability Status
+                                div(class="col-sm-8")
+                                   select(name="disability_status" id="disability-status" class="form-control")
+                                    option(value=0)
+                                    option(value="No Disabled") Not Disabled
+                                    option(value="Disabled") Disabled
+                            div(class="form-group row hd")
+                                label(class="col-sm-4 col-form-label disability-type-div hd") Type of Disability
+                                div(class="col-sm-8 disability-type-div hd")
+                                   select(name="disability_type" id="disability-type" class="form-control")
+                                    option(value="0") Select option
+                                    option(value="Vision Impairment") Vision Impairment
+                                    option(value="Deaf or hard of hearing") Deaf or hard of hearing
+                                    option(value="Mental health conditions") Mental health conditions
+                                    option(value="Intellectual disability") Intellectual disability
+                                    option(value="Acquired brain injury") Acquired brain injury
+                                    option(value="Autism spectrum disorder") Autism spectrum disorder
+                                    option(value="Physical disability") Physical disability
+
+                                   
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") District
+                                div(class="col-sm-8")
+                                    select(name="district" class="form-control district" id="member-district" onchange="district_changed(this,'member-')")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") County
+                                div(class="col-sm-8")
+                                    select(class="form-control" id="member-county" onchange="county_changed(this,'member-')")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Subcounty
+                                div(class="col-sm-8")
+                                    select(name="subcounty" class="form-control" id="member-subcounty" onchange="subcounty_changed(this,'member-')")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Parish
+                                div(class="col-sm-8")
+                                    select(name="parish"  class="form-control" id="member-parish")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Village
+                                div(class="col-sm-8")
+                                    input(type="text" class="form-control district" id="member-village")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Education Level
+                                div(class="col-sm-8")
+                                    select(name="education_level" class="form-control" id="edu-level")
+                                        option(value="0") Select option
+                                        option(value="PHD") PHD
+                                        option(value="Masters") Masters
+                                        option(value="Bachelors Degree") Bachelors Degree
+                                        option(value="Diploma") Diploma
+                                        option(value="Tertiary Certificate") Tertiary Certificate
+                                        option(value="Advanced Level Certificate") Advanced Level Certificate
+                                        option(value="Ordinary Level Certificate") Ordinary Level Certificate
+                                        option(value="Primary Level Certificate") Primary Level Certificate
+                                        option(value="Primary Dropout") Primary Dropout
+                                        option(value="Other") Other
+                                        option(value="None") None
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label" required) Income Source
+                                div(class="col-sm-8")
+                                    input(type="text" id="income-source" placeholder="Income Source" class="form-control")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Place of Operation
+                                div(class="col-sm-8")
+                                    input(type="text"  required id="place-of-operation" placeholder="Place of Operation" class="form-control")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") ID No.
+                                div(class="col-sm-8")
+                                    input(type="text"  required id="id-no" placeholder="ID No." class="form-control")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") ID Photo
+                                div(class="col-sm-8")
+                                    input(type="file"  required id="id-photo" placeholder="ID Photo" class="form-control")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Profile Photo
+                                div(class="col-sm-8")
+                                    input(type="file" required id="profile-photo" placeholder="Profile Photo" class="form-control")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Name of Next of Kin
+                                div(class="col-sm-8")
+                                    input(type="text" required  id="nok" placeholder="Next of Kin" class="form-control")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Next of Kin Primary Phone
+                                div(class="col-sm-8")
+                                    input(type="text" required id="nok-phone" placeholder="Next of Kin Phone" class="form-control")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Next of Kin Other Phone
+                                div(class="col-sm-8")
+                                    input(type="text" id="nok-phoneb" placeholder="Next of Kin Phone" class="form-control")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Role
+                                div(class="col-sm-8")
+                                    select(class="form-control" id="role")
+                                        option(value="0")
+                                        option(value="Member") Member
+                                        option(value='Chairperson') Chairperson
+                                        option(value='Treasurer') Treasurer
+                                        option(value="Secretary") Secretary
+
+                    div(class="modal-footer")
+                        button(type="button" class="btn btn-primary form-control" id="add-group-member-btn") Submit  
+
+
+        div(class="modal fade" tabindex="-1" aria-labelledby="change-role-div" aria-hidden="true" id="change-role-div")
+            div(class="modal-dialog" )
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h5(class="modal-title") Change Role
+                        button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                    div(class="modal-body")
+                       form 
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Role
+                                div(class="col-sm-8")
+                                    select(class="form-control" id="role-2")
+                                        option(value=0)
+                                        option(value='Chairperson') Chairperson
+                                        option(value='Treasurer') Treasurer
+                                        option(value="Secretary") Secretary
+                                        option(value="Member") Member
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label")
+                                div(class="col-sm-8")
+                                    button(type="button" class="btn btn-primary form-control" id="change-role-btn") Change Role
+        div(class="modal fade" tabindex="-1" aria-labelledby="edit-stock-div" aria-hidden="true" id="edit-stock-div")
+            div(class="modal-dialog" )
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h5(class="modal-title") Edit Stock
+                        button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                    div(class="modal-body")
+                       form
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Quantity
+                                div(class="col-sm-8")
+                                    input(type="number" class="form-control" id="e-qty" placeholder="Quantity")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label")
+                                div(class="col-sm-8")
+                                    button(type="button" class="btn btn-primary form-control" id="edit-stock-btn") Update
+        div(class="modal fade" tabindex="-1" aria-labelledby="edit-order-div" aria-hidden="true" id="edit-order-div")
+            div(class="modal-dialog" )
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h5(class="modal-title") Edit Order Item
+                        button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                    div(class="modal-body")
+                       form
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") No. of Hens
+                                div(class="col-sm-8")
+                                    input(type="number" class="form-control" id="e-order-qty" placeholder="Quantity")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label")
+                                div(class="col-sm-8")
+                                    button(type="button" class="btn btn-primary form-control" id="edit-order-btn") Update
+
+
+

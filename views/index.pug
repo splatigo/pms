@@ -2,26 +2,37 @@ extends layout
 block append head
     script(type='text/javascript', src='js/index.js')
 block content
-    div(class="alert alert-danger err-msg hd" role="alert")
-        p(class="err-content")
-       
-        span(class="close-x") &times
- 
-    div(class="alert alert-success success-msg hd" role="alert")
+    
+    div(class="header")
+        nav(class="navbar navbar-expand-sm navbar-dark bg-custom")
+            a(class="navbar-brand" href="/admin")
         
-        p(class="success-content")
-        
-        span(class="close-x") &times
+                img(src="/img/icon.PNG" class="logo")
+                span(style='padding-left:10px') Transpay PMS
+            button(class="navbar-toggler" type="button" data-toggle="collapse" data-target="#nav-content" aria-controls="nav-content" aria-expanded="false" aria-label="Toggle navigation")
+                span(class="navbar-toggler-icon")
+            div(class="collapse navbar-collapse" id="nav-content")
+                ul(class="navbar-nav ml-auto")
+                    li(class="nav-item")
+                        a(class="nav-link collapse-navbar" href="/market") 
+                            span(class="fa fa-sign-in") 
+                            span  Login
+                    li(class="nav-item")
+                        a(class="nav-link get-groups collapse-navbar" href="#") 
+                            span(class="fa fa-user-plus") 
+                            span  Register
+            
     div(id="container")
-        div(style="max-width:800px;margin:0px auto;padding:10px" id="login-div" class="child-div")
+
+        div(style="max-width:600px;margin:0px auto;padding:10px" id="login-div" class="child-div")
             div(class="card card-primary")
-                div(class="card-header bg-primary text-white") Login
+                div(class="card-header bg-custom text-white") Login
                 div(class="card-body")
                     form
                         div(class="form-group row")
-                            label(class="col-sm-3") Phone
+                            label(class="col-sm-3") Username
                             div(class="col-sm-9")
-                                input(type="text" class="form-control" id="login-username")
+                                input(type="text" class="form-control" id="login-username" placeholder="Username or Phone")
                         div(class="form-group row")
                             label(class="col-sm-3") Password
                             div(class="col-sm-9")
@@ -46,24 +57,28 @@ block content
                                             td(style="width:120px;padding-left:10px")
                                                 button(class="btn btn-primary" id="go-to-pass") Submit
                                     
-        div(style="max-width:800px;margin:0px auto;padding:10px" id="reset-div" class="child-div hd")
+        div(style="max-width:600px;margin:0px auto;padding:10px" id="reset-div" class="child-div hd")
             div(class="card card-primary")
-                div(class="card-header bg-primary text-white") Reset Password
+                div(class="card-header bg-custom text-white") Reset Password
                 div(class="card-body")
                     form
                         
                         div(class="form-group row")
-                            label(class="col-sm-3") Phone
+                            label(class="col-sm-3") Username
                             div(class="col-sm-9")
                                 input(type="tel" class="form-control" id="reset-phone")
                         
                         div(class="form-group row")
                             label(class="col-sm-3")
                             div(class="col-sm-9")
-                                button(type="button" class="btn btn-primary form-control req-reset-code") Submit
-        div(style="max-width:800px;margin:0px auto;padding:10px" id="register-div" class="child-div hd")
+                                button(type="button" class="btn btn-primary form-control" id="fetch-number") Submit
+                    p(align='right' style="padding-top:20px")
+                        button(class="btn btn-success go-to-login") <i class='fa fa-sign-in'></i> Back to Login
+        req-reset-code
+
+        div(style="max-width:600px;margin:0px auto;padding:10px" id="register-div" class="child-div hd")
             div(class="card card-primary")
-                div(class="card-header bg-primary text-white") Register for an Account
+                div(class="card-header bg-custom text-white") Register for an Account
                 div(class="card-body")
                     form
                         div(class="form-group row")
@@ -71,9 +86,9 @@ block content
                             div(class="col-sm-9")
                                 input(type="text" class="form-control" id="register-name")
                         div(class="form-group row")
-                            label(class="col-sm-3") Phone
+                            label(class="col-sm-3") Username
                             div(class="col-sm-9")
-                                input(type="tel" class="form-control" id="register-phone")
+                                input(type="tel" class="form-control" id="register-phone" placeholder="Username or Phone")
                         
                         div(class="form-group row")
                             label(class="col-sm-3")
@@ -81,7 +96,7 @@ block content
                                 button(type="button" class="btn btn-primary form-control" id="register-btn") Register
                     
                     p(align='right' style="padding-top:20px") Have an account? 
-                        button(class="btn btn-success go-to-login") <i class='fa fa-user-circle'></i> Login
+                        button(class="btn btn-success go-to-login") <i class='fa fa-sign-in'></i> Login
         div(class="modal fade " id="confirm-phone-div")
             div(class="modal-dialog modal-sm")
                 div(class="modal-content")
@@ -90,24 +105,38 @@ block content
                         button(class="btn btn-primary" data-dismiss="modal") Edit
                         span(style="padding-left:30px")
                         button(class="btn btn-success" id="confirm-register") Ok
-        div(style="max-width:800px;margin:0px auto;padding:10px" class="child-div hd" id="verification-div" )
+        div(style="max-width:600px;margin:0px auto;padding:10px" class="child-div hd" id="verification-div" )
             div( class="card card-primary" )
-                div(class="card-header bg-primary text-white") Enter SMS Verification Code
+                div(class="card-header bg-custom text-white") Enter SMS Verification Code
                 div(class="card-body")
-                    form(class="form-inline")
-                        label(class="sr-only") Verification Code
-                        input(id="reset-code" class="form-control mb-2 mr-sm-2" placeholder="SMS Code")
-                        button(class="btn btn-primary mb-2" id="submit-reset-code" type="button") Submit
-                    p(align='right' style="padding-top:20px") Didn't Recieve
+                    form
+                        div(class="form-row")
+                            div(class="col-md-10")
+                                input(id="reset-code" class="form-control mb-2 mr-sm-2" placeholder="SMS Code")
+                            div(class="col-md-2")
+                                button(class="btn  btn-primary form-control" id="submit-reset-code" type="button") Submit
+                    p(align='right' style="padding-top:20px") Didn't Recieve? 
                         button(class="btn btn-success send-reset-code") <i class='fa fa-refresh'></i> Resend
-        div(style="max-width:800px;margin:0px auto;padding:10px" class="child-div hd" id="new-password-div" )
+                    p(align='right' style="padding-top:20px")
+                        button(class="btn btn-success go-to-login") <i class='fa fa-sign-in'></i> Back to Login
+        div(style="max-width:600px;margin:0px auto;padding:10px" class="child-div hd" id="new-password-div" )
             div( class="card card-primary" )
-                div(class="card-header bg-primary text-white") Set Password
+                div(class="card-header bg-custom text-white") Set Password
                 div(class="card-body")
-                    form(class="form-inline")
+                    form(class="form-inline" autocomplete="off")
                         label(class="sr-only") Password
-                        input(id="new-password" class="form-control mb-2 mr-sm-2" placeholder="Password")
+                        input(id="new-password" class="form-control mb-2 mr-sm-2" placeholder="Password" type="password")
                         button(type="button" class="btn btn-primary mb-2" id="submit-new-password") Submit
+                    p(align='left' style="padding-top:20px")
+                        button(class="btn btn-success go-to-login") <i class='fa fa-sign-in'></i> Login
+        div(class="modal fade" tabindex="-1" aria-labelledby="confirm-send-reset-div" aria-hidden="true" id="confirm-send-reset-div")
+                div(class="modal-dialog")
+                    div(class="modal-content")
+                        div(class="modal-body")
+                            p(id="confirm-send-reset-content")
+                        div(class="modal-footer")
+                            button(class="btn btn-primary" onclick="send_reset_code()") Yes
+                            button(class="btn btn-secondary" data-dismiss="modal") No
 
         
 

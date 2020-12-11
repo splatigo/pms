@@ -1,0 +1,770 @@
+extends layout
+block append head
+    script(type='text/javascript', src='js/admin.js')
+block content
+    div(class="header")
+        nav(class="navbar navbar-expand-lg navbar-dark bg-custom")
+            a(class="navbar-brand a-dashboard" href="#")
+        
+                img(src="/img/icon.PNG" class="logo")
+                span(style='padding-left:10px') Transpay PMS
+            button(class="navbar-toggler" type="button" data-toggle="collapse" data-target="#nav-content" aria-controls="nav-content" aria-expanded="false" aria-label="Toggle navigation")
+                span(class="navbar-toggler-icon")
+            div(class="collapse navbar-collapse" id="nav-content")
+                ul(class="navbar-nav mr-auto")
+                   
+                    li(class="nav-item")
+                        a(class="nav-link get-groups collapse-navbar" href="#") 
+                            span(class="fa fa-group") 
+                            span  Groups
+                    li(class="nav-item")
+                        a(class="nav-link get-suppliers collapse-navbar" href="#") 
+                            span(class="fa fa-steam-square") 
+                            span  Suppliers
+                    li(class="nav-item dropdown")
+                        a(class="nav-link dropdown-toggle" id="a-orders" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false") 
+                            span(class="fa fa-outdent") 
+                            span  Orders
+                        div(class="dropdown-menu" aria-labelledby="a-orders")
+                            a(href="#" class='dropdown-item collapse-navbar' onclick="view_orders('Awaiting Delivery','Out for Delivery')") Awaiting Delivery
+                            a(href="#" class='dropdown-item collapse-navbar' onclick="view_orders('Out for Delivery','Delivered')") Out for Delivery
+                            a(href="#"  class='dropdown-item collapse-navbar' onclick="view_orders('Delivered')") Delivered
+                    li(class="nav-item dropdown")
+                        a(class="nav-link dropdown-toggle" id="a-supply-orders" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false") 
+                            span(class="fa fa-outdent") 
+                            span  Supplies Orders
+                        div(class="dropdown-menu" aria-labelledby="a-supply-orders")
+                            a(href="#" class='dropdown-item collapse-navbar' onclick="view_supply_orders('Pending Approval','Pending Delivery')") Pending Approval
+                            a(href="#" class='dropdown-item collapse-navbar' onclick="view_supply_orders('Pending Delivery','Out for Delivery')") Pending Delivery
+                            a(href="#" class='dropdown-item collapse-navbar' onclick="view_supply_orders('Out for Delivery','Delivered')") Out for Delivery
+                            a(href="#"  class='dropdown-item collapse-navbar' onclick="view_supply_orders('Delivered')") Delivered
+                    li(class="nav-item dropdown")
+                        a(class="nav-link dropdown-toggle" id="a-stock" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false") 
+                            span(class="fa fa-indent") 
+                            span  Stock
+                        div(class="dropdown-menu" aria-labelledby="a-orders")
+                            a(href="#" class='dropdown-item collapse-navbar' onclick="view_stock('Pending Approval','Pending Payment')") Pending Approval
+                            a(href="#" class='dropdown-item collapse-navbar' onclick="view_stock('Pending Payment','Paid')") Pending Payment
+                            a(href="#"  class='dropdown-item collapse-navbar' onclick="view_stock('Paid')") Paid
+                    li(class="nav-item dropdown")
+                        a(class="nav-link dropdown-toggle" id="a-pricing" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false") 
+                            span(class="fa fa-gear") 
+                            span  Settings
+                        div(class="dropdown-menu" aria-labelledby="a-pricing")
+                            a(href="#" class='dropdown-item collapse-navbar' id="a-set-price") Egg Selling Price
+                            a(href="#" class='dropdown-item collapse-navbar' id="a-set-buying-price") Egg Buying Price
+                ul(class="navbar-nav ml-auto")
+                    li(class="nav-item dropdown user-li hd")
+                        a(class="nav-link dropdown-toggle" href="#" id="a-user-options" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false")
+                            span(class="fa fa-user")
+                            span(id="my-name")
+                        div(class="dropdown-menu" aria-labelledby="a-user-options" id="user-options")
+                            a(href="#" class="dropdown-item") <i class='fa fa-user-o'></i> Profile
+                            a(href="#" class="dropdown-item confirm-axn" axn='signout') <i class='fa fa-sign-out'></i> Signout
+
+    div(class="container")
+        p
+         div(class="cd" id="dashboard")
+            div(class="card card-prmary")
+                div(class="card-header bg-custom text-white") <span class='fa fa-dashboard'></span>  Dashboard
+                div(class="card-body")
+                    div(class="row row-cols-1 row-cols-md-4")
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    table(align="center")
+                                        tr
+                                            td
+                                        
+                                                span(class="fa fa-group")
+                                            td
+                                                span Counts
+
+                                div(class="card-body get-groups cb-link")
+                                    div(class="div-hr")
+                                      
+                                        span(id="db-group-count")
+
+                                        hr
+                                        span(id="db-members-count")
+                                        hr
+                                        
+                                        span(id="db-suppliers-count")
+                        
+                                    
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center")
+                                        span(class="fa fa-paw ")
+                                    
+                                        span  Chicken Status
+                                        
+
+                                        
+                                div(class="card-body cb-link get-cs")
+                                    div(class="div-hr") 
+                                        span(style="font-size:10px") * Current Week
+                                        br
+                                        span(id="db-cs")
+                                       
+                                        
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center")
+                                        span(class="fa fa-indent ")
+                                    
+                                        span  Eggs in Stock
+                                div(class="card-body")
+                                    div(class="div-hr")
+                                        
+                                        span(id="db-instock")
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    table(align="center")
+                                        tr
+                                            td
+                                        
+                                                span(class="fa fa-indent")
+                                            td
+                                                span Stock Pending Approval
+                                div(class="card-body cb-link"  onclick="view_stock('Pending Approval','Pending Payment')")
+                                    div(class="div-hr")
+                                    
+                                        br
+                                        span(id="db-pending-approval")
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center")
+                                        span(class="fa fa-indent")
+                                    
+                                        span  Stock Pending Payment
+                                div(class="card-body cb-link" onclick="view_stock('Pending Payment','Paid')")
+                                       
+                                    div(class="div-hr")
+                                       
+                                        span(id="db-pending-payment")
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                     p(align="center")
+                                        span(class="fa fa-indent ")
+                                        span  Stock Paid
+                                div(class="card-body cb-link"  onclick="view_stock('Paid')")
+                                       
+                                    div(class="div-hr")
+                                        span(id="db-paid")
+                                        
+                                        
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center")
+                                        span(class="fa fa-outdent ")
+                                        span  Orders Pending Delivery
+                                div(class="card-body cb-link" onclick="view_orders('Awaiting Delivery','Out for Delivery')")
+                                    
+                                    div(style="text-align:center")
+                                      
+                                        span(id="db-orders-pending-delivery")
+                        
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center")
+                                        span(class="fa fa-outdent ")
+                                        span  Orders out for Delivery
+                                div(class="card-body cb-link" onclick="view_orders('Out for Delivery','Delivered')")
+                                    p(align="center")
+                                        span(id="db-orders-out-for-delivery")
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center")
+                                        span(class="fa fa-outdent ")
+                                        span  Orders Delivered
+                                div(class="card-body cb-link" onclick="view_orders('Delivered')")
+                                    p(align="center")
+                                        span(id="db-orders-delivered")
+
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center") <i class="fa fa-steam-square"></i> Supplies for Approval
+                                div(class="card-body cb-link" onclick="view_supply_orders('Pending Approval','Pending Delivery')")
+                                    p(align='center' style="font-size:15px;")
+                                        span(id="db-supply-orders-pending-approval")
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center") <i class="fa fa-steam-square"></i> Supplies Pending Delivery
+
+                                div(class="card-body cb-link" onclick="view_supply_orders('Pending Delivery','Out for Delivery')")
+                                    p(align='center' style="font-size:15px;")
+                                        span(id="db-supply-orders-pending-delivery")
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center") <i class="fa fa-steam-square"></i> Supplies Out for Delivery
+                                div(class="card-body cb-link" onclick="view_supply_orders('Out for Delivery','Delivered')")
+                                    p(align='center' style="font-size:15px;")
+                                        span(id="db-supply-orders-out-for-delivery")
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center") <i class="fa fa-steam-square"></i> Supplies Delivered
+                                div(class="card-body cb-link" onclick="view_supply_orders('Delivered')")
+                                    p(align='center' style="font-size:15px;")
+                                        span(id="db-supply-orders-delivered")
+
+        p
+        div(class="cd hd" id="groups-div")
+            button(class="btn btn-primary a-create-group") <i class='fa fa-plus'></i> New Group
+            span &nbsp
+
+            button(class="btn btn-primary dropdown-toggle a-group-filter" id="group-filter" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false") <img src="/img/controls.png" style="width:16px;height:16px"></i> Filter
+            div(class="dropdown-menu" aria-labelledby="group-filter")
+                a(class="dropdown-item" href="#" onclick="filter_group_dl('district')") District
+                a(class="dropdown-item" href="#"  onclick="filter_group_dl('no')") Group No.
+                a(class="dropdown-item" href="#"  onclick="filter_group_dl('name')") Group Name
+                a(class="dropdown-item" href="#"  onclick="filter_group_dl('clear')") Clear Filter
+
+            div(class="modal fade" tabindex="-1" aria-labelledby="group-filter-div" aria-hidden="true" id="group-filter-div")
+                div(class="modal-dialog")
+                    div(class="modal-content")
+                        div(class="modal-header")
+                            h5(class="modal-title") Filter
+                            button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                                span(aria-hidden="true") &times;
+                        div(class="modal-body")
+                            div(class="group-filter-cd" id="group-filter-by-district")
+                                form
+                                    div(class="form-group row")
+                                
+                                        div(class="col-sm-9")
+                                            
+                                            select(id="group-filter-district" class="form-control")
+                                        div(class="col-sm-3")
+                                            button(type="button" class="btn btn-primary form-control" onclick="filter_group()") Submit
+                            div(class="group-filter-cd" id="group-filter-by-no")
+                                form
+                                    div(class="form-group row")
+                                
+                                        div(class="col-sm-9")
+                                            
+                                            input(id="group-filter-no" class="form-control" placeholder="Group No.")
+                                        div(class="col-sm-3")
+                                            button(type="button" class="btn btn-primary form-control" onclick="filter_group()") Submit
+                            div(class="group-filter-cd" id="group-filter-by-name")
+                                form
+                                    div(class="form-group row")
+                                
+                                        div(class="col-sm-9")
+                                            
+                                            input(id="group-filter-name" class="form-control" placeholder="Group Name")
+                                        div(class="col-sm-3")
+                                            button(type="button" class="btn btn-primary form-control" onclick="filter_group()") Submit
+            p
+            div(class="card card-prmary")
+                div(class="card-header bg-custom text-white")
+                 
+                        span(class="fa fa-group")
+                        span(id="groups-hdr")  Groups List
+                div(class="card-body")
+                    div(class="table-responsive")
+                   
+                        table(id="groups-table" class="table table-striped")
+            p(class="alert alert-info" id="no-groups") No groups added
+        div(class="cd hd" id="suppliers-div")
+            button(class="btn btn-primary a-create-supplier") <i class='fa fa-plus'></i> New Supplier
+            p
+            div(class="card card-prmary")
+                div(class="card-header bg-custom text-white")
+                 
+                        span(class="fa fa-group")
+                        span(id="groups-hdr")  Suppliers' List
+                div(class="card-body")
+                    div(class="table-responsive")
+                        table(id="suppliers-table" class="table table-striped")
+                    p(class="alert alert-info" id="no-suppliers") No suppliers added
+        
+        div(class="cd hd" id="orders-div")
+            div(class="card card-prmary")
+                div(class="card-header bg-custom text-white")
+                    h5
+                        span(class="fa fa-filter")
+                        span(id="curr-status")
+                div(class="card-body")
+                       
+                    button(id="chx-status-btn" class="btn btn-primary" onclick="change_status()")
+                    p
+                    div(class="table-responsive")
+                        table(id="orders-table" class="table table-striped")
+                    p(class="alert alert-info hd" id="no-orders") No orders in selected category
+        div(class="cd hd" id="supply-orders-div")
+            div(class="card card-prmary")
+                div(class="card-header bg-custom text-white")
+                    h5
+                        span(class="fa fa-filter")
+                        span(id="supply-orders-curr-status")
+                div(class="card-body")
+                    div(class="dropdown")
+                        button(class="btn btn-primary dropdown-toggle" type="button" id="change-supply-order-status-parent" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false") Change Order Status
+                        div(class="dropdown-menu" aria-labelledby="change-supply-order-status-parent")
+                            button(class="dropdown-item change-supply-order-status"  onclick="change_supply_orders_status('Pending Delivery')") Pending Delivery
+                            button(class="dropdown-item change-supply-order-status" onclick="change_supply_orders_status('Out for Delivery')") Mark as out for Delivery
+                            button(class="dropdown-item change-supply-order-status" onclick="change_supply_orders_status('Delivered')") Mark as Delivered
+                    p
+                    div(class="table-responsive")
+                        table(id="supply-orders-table" class="table table-striped")
+                    p(class="alert alert-info hd" id="no-supply-orders") No supply orders in selected category
+        div(class="modal fade" tabindex="-1" aria-labelledby="assign-supplier-div" aria-hidden="true" id="assign-supplier-div")
+            div(class="modal-dialog" )
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h5(class="modal-title") Assign to Supplier
+                        button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                    div(class="modal-body")
+                        form
+                            div(class="form-group row")
+                                
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Supplier ID
+                                div(class="col-sm-8")
+                                    select(class="form-control" id="supplier-id" placeholder="Supplier ID")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label")
+                                div(class="col-sm-8")
+                                    button(type="button" class="btn btn-primary form-control" id="assign-supplier-btn") Assign & Mark as Out for Delivery
+
+        
+        div(class="cd hd" id="stock-div")
+            div(class="card card-prmary")
+                div(class="card-header bg-custom text-white")
+                    h5
+                        span(class="fa fa-filter")
+                        span(id="curr-stock-status")
+
+                div(class="card-body")
+                       
+                    button(id="chx-stock-status-btn" class="btn btn-primary" onclick="change_stock_status()")
+                    p
+                    div(class="table-responsive")
+                        table(id="stock-table" class="table table-striped")
+                    p(class="alert alert-info hd" id="no-stock") No stock in selected category
+        
+        div(class="cd hd" id="cs-div")
+            div(class="modal fade" tabindex="-1" aria-labelledby="cs-modal" aria-hidden="true" id="cs-modal")
+                div(class="modal-dialog" )
+                    div(class="modal-content")
+                        div(class="modal-body")
+                            form
+                                div(class="form-group row")
+                                    label(class="col-sm-4 col-form-label") Year
+                                    div(class="col-sm-8")
+                                        select(class="form-control cs-year" id="cs-year")
+                                div(class="form-group row")
+                                    label(class="col-sm-4 col-form-label") Month
+                                    div(class="col-sm-8")
+                                        select(class="form-control cs-month" id="cs-month")
+                                div(class="form-group row")
+                                    label(class="col-sm-4 col-form-label") Week
+                                    div(class="col-sm-8")
+                                        select(class="form-control" id="cs-week")
+                                            option(value="0")
+                                            option(value="1") Week 1
+                                            option(value="2") Week 2
+                                            option(value="3") Week 3
+                                            option(value="4") Week 4
+                                div(class="form-group row")
+                                    label(class="col-sm-4 col-form-label")
+                                    div(class="col-sm-8")
+                                        button(type="button" class="btn btn-primary form-control" id="get-cs") Go
+           
+            br
+            div(class="card card-prmary")
+                div(class="card-header bg-custom text-white")
+                    h5
+                        span(class="fa fa-filter")
+                        span Chicken Status,
+                        span(id="cs-hdr")
+
+                div(class="card-body")
+                    button(class="btn btn-primary" id="cs-filter") Filter Results
+                    p
+                    div(class="table-responsive")
+                        table(id="cs-table" class="table table-striped")
+                    p(class="alert alert-info hd" id="no-cs") No chicken status for selected period
+        
+        div(class="modal fade" tabindex="-1" aria-labelledby="create-group-div" aria-hidden="true" id="create-group-div" data-backdrop="static")
+            div(class="modal-dialog modal-lg modal-dialog-scrollable")
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h5(class="modal-title" id="create-group-hdr") Create a Group
+                        button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                    div(class="modal-body")
+                        form
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label") Group Name
+                                div(class="col-sm-9")
+                                    input(type="text" class="form-control" id="group-name" placeholder="Group name")
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label") District
+                                div(class="col-sm-9")
+                                    select(class="form-control" id="district" onchange="district_changed(this,0)")
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label") County
+                                div(class="col-sm-9")
+                                    select(class="form-control" id="county" onchange="county_changed(this,0)")
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label" ) Subcounty
+                                div(class="col-sm-9")
+                                    select(class="form-control" id="subcounty" onchange="subcounty_changed(this,0)")
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label" ) Parish
+                                div(class="col-sm-9")
+                                    select(class="form-control" id="parish")
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label" type="text") Village
+                                div(class="col-sm-9")
+                                    input(class="form-control" id="village" type="text")
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label") Meeting Place
+                                div(class="col-sm-9")
+                                    input(class="form-control" id="meeting-place" type="text")
+                            
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label") Meeting Day
+                                div(class="col-sm-9")
+                                    select(class="form-control" id="meeting-day")
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label") Registration Certificate
+                                div(class="col-sm-9")
+                                    input(class="form-control" id="cert-photo" type="file")
+
+                    div(class="modal-footer")
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label")
+                                div(class="col-sm-9")
+                                    button(class="form-control btn btn-primary" id="create-group-btn" type="button") Submit
+        div(class="modal fade" tabindex="-1" aria-labelledby="egg-price-div" aria-hidden="true" id="egg-price-div")
+            div(class="modal-dialog" )
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h5(class="modal-title") Set Egg Selling Price
+                        button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                    div(class="modal-body")
+                        form
+                            div(class="form-group row")
+                                label(class="col-sm-12 center")
+                                    span(class="fa fa-money")
+                                    span  Current Price: 
+                                    span(id="curr-price")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") New Price
+                                div(class="col-sm-8")
+                                    input(type="number" class="form-control" id="n-price" placeholder="New Price")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label")
+                                div(class="col-sm-8")
+                                    button(type="button" class="btn btn-primary form-control" id="set-price-btn") Set Price
+        div(class="modal fade" tabindex="-1" aria-labelledby="egg-buying-price-div" aria-hidden="true" id="egg-buying-price-div")
+            div(class="modal-dialog" )
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h5(class="modal-title") Set Egg Buying Price
+                        button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                    div(class="modal-body")
+                        form
+                            div(class="form-group row")
+                                label(class="col-sm-12 center")
+                                    span(class="fa fa-money")
+                                    span  Current Price: 
+                                    span(id="curr-buying-price")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") New Price
+                                div(class="col-sm-8")
+                                    input(type="number" class="form-control" id="n-buying-price" placeholder="New Price")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label")
+                                div(class="col-sm-8")
+                                    button(type="button" class="btn btn-primary form-control" id="set-buying-price-btn") Set Price
+
+        div(class="cd hd" id="members-div")
+            
+            div(class="card card-prmary")
+                div(class="card-header bg-custom text-white") <span id="group-name-2"></span>
+                div(class="card-body")
+                    button(class="btn btn-primary" id="a-add-new-member") <i class="fa fa-plus"></i> Add New Member
+                    p
+                    h5 <i class='fa fa-group'></i> Group Members
+                    div(class="table-responsive")
+                        table(id="members-table" class="table")
+                    p(class="alert alert-info hd" id="no-group-members") No group members
+        
+        div(class="modal fade" tabindex="-1" aria-labelledby="add-new-member-div" aria-hidden="true" id="add-new-member-div" data-backdrop="static")
+            div(class="modal-dialog modal-lg modal-dialog-scrollable" )
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h5(class="modal-title" id="add-new-member-hdr") Add New Member
+                        button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                    div(class="modal-body")
+                        form
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Name
+                                div(class="col-sm-8")
+                                    input(type="text" class="form-control" id="member-name" placeholder="Name" required)
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Email
+                                div(class="col-sm-8")
+                                    input(type="text" class="form-control" id="email" placeholder="Email" required)
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Primary Phone Number
+                                div(class="col-sm-8")
+                                    input(type="text"  class="form-control" id="phone" placeholder="Phone" required)
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Other Phone Number
+                                div(class="col-sm-8")
+                                    input(type="text" class="form-control" id="other-phone" placeholder="Other Phone" required)
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Date of Birth
+                                div(class="col-sm-8")
+                                    table(style="width:100%")
+                                        tr
+                                            td
+                                                select(id="day" class="form-control day" )
+                                            td
+                                                select(id="month" class="form-control month")
+                                            td
+                                                select(id="year" class="form-control year")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Gender
+                                div(class="col-sm-8")
+                                   select(id="gender" class="form-control" required)
+                                    option(value=0)
+                                    option(value="Male") Male
+                                    option(value="Female") Female
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Marital Status
+                                div(class="col-sm-8")
+                                   select(id="marital-status" class="form-control")
+                                    option(value="0")
+                                    option(value="Married") Married
+                                    option(value="Not married") No married
+                            div(class="form-group row ")
+                                label(class="col-sm-4 col-form-label spouse-div hd") Name of Spouse
+                                div(class="col-sm-8 spouse-div hd")
+                                    input(type="text"  id="spouse" placeholder="Spouse" class="form-control")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") No. Dependants
+                                div(class="col-sm-8")
+                                    input(type="number"  id="dependants" placeholder="Eg. 3" class="form-control" )
+                            
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label ") Disability Status
+                                div(class="col-sm-8")
+                                   select(id="disability-status" class="form-control")
+                                    option(value=0)
+                                    option(value="No Disabled") Not Disabled
+                                    option(value="Disabled") Disabled
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label disability-type-div hd") Type of Disability
+                                div(class="col-sm-8 disability-type-div hd")
+                                   select(name="disability_type" id="disability-type" class="form-control")
+                                    option(value="0") Select option
+                                    option(value="Vision Impairment") Vision Impairment
+                                    option(value="Deaf or hard of hearing") Deaf or hard of hearing
+                                    option(value="Mental health conditions") Mental health conditions
+                                    option(value="Intellectual disability") Intellectual disability
+                                    option(value="Acquired brain injury") Acquired brain injury
+                                    option(value="Autism spectrum disorder") Autism spectrum disorder
+                                    option(value="Physical disability") Physical disability
+
+                                   
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") District
+                                div(class="col-sm-8")
+                                    select(name="district" class="form-control district" id="member-district" onchange="district_changed(this,'member-')")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") County
+                                div(class="col-sm-8")
+                                    select(class="form-control" id="member-county" onchange="county_changed(this,'member-')")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Subcounty
+                                div(class="col-sm-8")
+                                    select(name="subcounty" class="form-control" id="member-subcounty" onchange="subcounty_changed(this,'member-')")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Parish
+                                div(class="col-sm-8")
+                                    select(name="parish"  class="form-control" id="member-parish")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Village
+                                div(class="col-sm-8")
+                                    input(type="text" class="form-control district" id="member-village")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Education Level
+                                div(class="col-sm-8")
+                                    select(name="education_level" class="form-control" id="edu-level")
+                                        option(value="0") Select option
+                                        option(value="PHD") PHD
+                                        option(value="Masters") Masters
+                                        option(value="Bachelors Degree") Bachelors Degree
+                                        option(value="Diploma") Diploma
+                                        option(value="Tertiary Certificate") Tertiary Certificate
+                                        option(value="Advanced Level Certificate") Advanced Level Certificate
+                                        option(value="Ordinary Level Certificate") Ordinary Level Certificate
+                                        option(value="Primary Level Certificate") Primary Level Certificate
+                                        option(value="Primary Dropout") Primary Dropout
+                                        option(value="Other") Other
+                                        option(value="None") None
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label" required) Income Source
+                                div(class="col-sm-8")
+                                    input(type="text" id="income-source" placeholder="Income Source" class="form-control")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Place of Operation
+                                div(class="col-sm-8")
+                                    input(type="text"  required id="place-of-operation" placeholder="Place of Operation" class="form-control")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") ID No.
+                                div(class="col-sm-8")
+                                    input(type="text"  required id="id-no" placeholder="ID No." class="form-control")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") ID Photo
+                                div(class="col-sm-8")
+                                    input(type="file"  required id="id-photo" placeholder="ID Photo" class="form-control")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Profile Photo
+                                div(class="col-sm-8")
+                                    input(type="file" required id="profile-photo" placeholder="Profile Photo" class="form-control")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Name of Next of Kin
+                                div(class="col-sm-8")
+                                    input(type="text" required  id="nok" placeholder="Next of Kin" class="form-control")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Next of Kin Primary Phone
+                                div(class="col-sm-8")
+                                    input(type="text" required id="nok-phone" placeholder="Next of Kin Phone" class="form-control")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Next of Kin Other Phone
+                                div(class="col-sm-8")
+                                    input(type="text" id="nok-phoneb" placeholder="Next of Kin Phone" class="form-control")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Role
+                                div(class="col-sm-8")
+                                    select(class="form-control" id="role")
+                                        option(value="0")
+                                        option(value="Member") Member
+                                        option(value='Chairperson') Chairpeson
+                                        option(value='Treasurer') Treasurer
+                                        option(value="Secretary") Secretary
+
+                    div(class="modal-footer")
+                        button(type="button" class="btn btn-primary form-control" id="add-group-member-btn") Submit  
+
+        div(class="modal fade" tabindex="-1" aria-labelledby="change-role-div" aria-hidden="true" id="change-role-div")
+            div(class="modal-dialog" )
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h5(class="modal-title") Change Role
+                        button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                    div(class="modal-body")
+                       form
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Change Role
+                                div(class="col-sm-8")
+                                    select(class="form-control" id="role-2")
+                                        option(value=0)
+                                        option(value='Chairperson') Chairperson
+                                        option(value='Treasurer') Treasurer
+                                        option(value="Secretary") Secretary
+                                        option(value="Member") Member
+
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label")
+                                div(class="col-sm-8")
+                                    button(type="button" class="btn btn-primary form-control" id="change-role-btn") Confirm Changes
+        div(class="modal fade" tabindex="-1" aria-labelledby="create-supplier-div" aria-hidden="true" id="create-supplier-div" data-backdrop="static")
+            div(class="modal-dialog modal-lg modal-dialog-scrollable")
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h5(class="modal-title" id="create-supplier-hdr") Add a Supplier
+                        button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                    div(class="modal-body")
+                        form
+                            
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label") Supplier's Name
+                                div(class="col-sm-9")
+                                    input(type="text" class="form-control" id="supp-name" placeholder="Name")
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label") Gender
+                                div(class="col-sm-9")
+                                    select(class="form-control" id="supp-gender")
+                                        option(value="0")
+                                        option(value="Male") Male
+                                        option(value="Female") Female
+
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label") Phone
+                                div(class="col-sm-9")
+                                    input(type="text" class="form-control" id="supp-phone" placeholder="Phone")
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label") Other Phone
+                                div(class="col-sm-9")
+                                    input(type="text" class="form-control" id="supp-other-phone" placeholder="Phone")
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label") Supplier Email
+                                div(class="col-sm-9")
+                                    input(type="text" class="form-control" id="supp-email" placeholder="Email")
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label") Business Name
+                                div(class="col-sm-9")
+                                    input(type="text" class="form-control" id="business-name" placeholder="Business name")
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label") District
+                                div(class="col-sm-9")
+                                    select(class="form-control" id="supp-district" onchange="district_changed(this,'supp-')")
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label") County
+                                div(class="col-sm-9")
+                                    select(class="form-control" id="supp-county" onchange="county_changed(this,'supp-')")
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label" ) Subcounty
+                                div(class="col-sm-9")
+                                    select(class="form-control" id="supp-subcounty" onchange="subcounty_changed(this,'supp-')")
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label") Parish
+                                div(class="col-sm-9")
+                                    select(class="form-control" id="supp-parish")
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label") Village
+                                div(class="col-sm-9")
+                                    input(class="form-control" id="supp-village" type="text")
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label") Business Address
+                                div(class="col-sm-9")
+                                    input(class="form-control" id="business-address" type="text")
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label") ID Photo
+                                div(class="col-sm-9")
+                                    input(type="file"  required id="supp-id-photo" placeholder="ID Photo" class="form-control")
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label") Profile Photo
+                                div(class="col-sm-9")
+                                    input(type="file" required id="supp-profile-photo" placeholder="Profile Photo" class="form-control")
+                    div(class="modal-footer")
+                            div(class="form-group row")
+                                label(class="col-sm-3 col-form-label")
+                                div(class="col-sm-9")
+                                    button(class="form-control btn btn-primary" id="create-supplier-btn" type="button") Create
