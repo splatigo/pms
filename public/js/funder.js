@@ -23,7 +23,7 @@ $(function () {
 	load_days()
 	get_defaults()
 	$(".a-dashboard").click(function () {
-		$(".child-div").hide()
+		$(".cd").hide()
 		get_defaults()
 		
 	})
@@ -114,7 +114,6 @@ $(function () {
 		ajax_go(data,function (rst) {
 			var groups=rst.groups;
 			adata.groups=groups
-
 			load_groups(groups)
 		})
 		
@@ -135,10 +134,6 @@ $(function () {
 		})
 		
 	})
-	$(".get-funders").click(function () {
-
-		load_funders(adata.funders,adata.me.priv,1)
-	})
 	$("#create-group-btn").click(function () {
 		var district=$("#district").val();
 		var county=$("#county").val()
@@ -152,10 +147,7 @@ $(function () {
 		var chairperson=$("#chairperson-name").attr("userid")
 		var meeting_day=$("#meeting-day").val()
 		var cert_photo=$("#cert-photo")[0].files
-		var funder=$("#group-funder").val()
-		if(adata.me.priv=="funder")
-			funder=adata.me.id
-		var arr=[{fn:"Group Name",val:group_name},{fn:"Organization",val:funder},{fn:"District",val:district,ft:"sel"},{fn:"County",val:county,ft:"sel"},{fn:"Subcounty",val:subcounty,ft:"sel"},{fn:"Parish",val:parish,ft:"sel"},{fn:"Village",val:village},{fn:"Meeting Place",val:meeting_place},{fn:"Meeting Day",val:meeting_day,ft:"sel"}]
+		var arr=[{fn:"Group Name",val:group_name},{fn:"District",val:district,ft:"sel"},{fn:"County",val:county,ft:"sel"},{fn:"Subcounty",val:subcounty,ft:"sel"},{fn:"Parish",val:parish,ft:"sel"},{fn:"Village",val:village},{fn:"Meeting Place",val:meeting_place},{fn:"Meeting Day",val:meeting_day,ft:"sel"}]
 		if(adata.axn=="create-group")
 			arr[arr.length]={fn:"Registration Certificate",val:cert_photo,ft:"photo"}
 		else
@@ -175,7 +167,6 @@ $(function () {
 		data.append("meeting_place",meeting_place)
 		data.append("meeting_day",meeting_day)
 		data.append("group_id",adata.group_id)
-		data.append("funder_id",funder)
 		data.append("rq",adata.axn)
 
 		if(cert_photo.length)
@@ -273,30 +264,20 @@ $(function () {
 		data.append("rq",adata.memaxn)
 		data.append("role",role)
 		arr[arr.length]={fn:"Member's Name ",val:name};data.append("name",name);
-		//arr[arr.length]={fn:"Email",val:email,ft:"email"};
-		data.append("email",email)
-		//arr[arr.length]={fn:"Phone",val:phone,ft:"phone"};
-		data.append("phone",phone)
-		phoneb=$("#other-phone").val();
-		//arr[arr.length]={fn:"Other Phone",val:phoneb,ft:"phone",op:1};
-		data.append("phoneb",phoneb)
+		arr[arr.length]={fn:"Email",val:email,ft:"email"};data.append("email",email)
+		arr[arr.length]={fn:"Phone",val:phone,ft:"phone"};data.append("phone",phone)
+		phoneb=$("#other-phone").val();arr[arr.length]={fn:"Other Phone",val:phoneb,ft:"phone",op:1};data.append("phoneb",phoneb)
 		var dob=$("#year").val()+"-"+$("#month").val()+"-"+$("#day").val()
-		if($("#year").val()==null||$("#month").val()==null||$("#day").val()==null)
-			dob="-"
-
 		arr[arr.length]={fn:"Date of Birth",val:dob,ft:"date"};data.append("dob",dob);
 		
-		var gender=$("#gender").val();
-		data.append("gender",gender)
+		var gender=$("#gender").val();arr[arr.length]={fn:"Gender",val:gender,ft:"sel"};data.append("gender",gender)
 		var marital_status=$("#marital-status").val();arr[arr.length]={fn:"Marital status",val:marital_status,ft:"sel"};data.append("marital_status",marital_status)
 		var spouse=$("#spouse").val();
 		if(marital_status=="Married")
 			arr[arr.length]={fn:"Name of Spouse",val:spouse};
-		var dependants=$("#dependants").val();//arr[arr.length]={fn:"No. of Dependants",val:dependants};
-		data.append("dependants",dependants)
+		var dependants=$("#dependants").val();arr[arr.length]={fn:"No. of Dependants",val:dependants};data.append("dependants",dependants)
 		data.append("spouse",spouse);
-		var disability_status=$("#disability-status").val();//arr[arr.length]={fn:"Disability Status",val:disability_status,ft:"sel"};
-		data.append("disability_status",disability_status)
+		var disability_status=$("#disability-status").val();arr[arr.length]={fn:"Disability Status",val:disability_status,ft:"sel"};data.append("disability_status",disability_status)
 		var disability_type=$("#disability-type").val();data.append("disability_type",disability_type);
 		if(disability_status=="Disabled")
 			arr[arr.length]={fn:"Disability Type",val:disability_type,ft:"sel"};
@@ -325,9 +306,6 @@ $(function () {
 		var nok_phone=$("#nok-phone").val();arr[arr.length]={fn:"Next of kin Primary Phone",val:nok_phone,ft:"phone"};data.append("nok_phone",nok_phone)
 		var nok_phoneb=$("#nok-phoneb").val();arr[arr.length]={fn:"Next of kin Other Phone",val:nok_phoneb,ft:"phone",op:1};data.append("nok_phoneb",nok_phoneb)
 		arr[arr.length]={fn:"Role",val:role,ft:"sel"};
-		arr=[]
-		arr[arr.length]={fn:"Member's Name ",val:name};
-		arr[arr.length]={fn:"Gender",val:gender,ft:"sel"};
 		var vr=check_empty(arr)
 		if(!vr)
 			return 0;
@@ -336,8 +314,6 @@ $(function () {
 		if(id_photo.length)
 			data.append("id_photo",$("#id-photo")[0].files[0])
 		data.append("member_id",adata.member_id)
-		
-
 		ajax_file(data,data2,function (rst) {
 			if(rst.errmsg){
 			}
@@ -383,16 +359,8 @@ function get_defaults() {
 	ajax_go(data,function (rst) {
 		adata.settings=rst.settings
 		adata.user=rst.user;
-		adata.me=rst.me;
-		if(rst.me.priv=="admin"){
-			$("#my-name").text(" "+rst.me.name)
-			$(".admin-tp").show()
-		}
-		else{
-			$("#my-name").text(" "+rst.me.business_name)
-			$(".admin-tp").hide()
-		}
-		
+
+		$("#my-name").text(" "+rst.me.name)
 		$(".user-li").show()
 		var price=cx(rst.settings.selling_price)
 		var districts=rst.districts;
@@ -401,43 +369,32 @@ function get_defaults() {
 
 		$("#curr-buying-price,#db-buying-price").text("UGX "+cx(rst.settings.buying_price))
 		$("#curr-chicken-price,#db-chicken-price").text("UGX "+ cx(rst.settings.chicken_price))
-		var clms=[]
-		if(adata.me.priv=="admin")
-			clms[clms.length]={cn:"Name",fn:"name"}
-		if(adata.me.priv=="funder")
-			clms[clms.length]={cn:"Organization Name",fn:"business_name"}
-		clms[clms.length]={cn:"Primary Phone",fn:"phone"}
-		clms[clms.length]={cn:"Other Phone",fn:"phoneb"}
-		clms[clms.length]={cn:"Email",fn:"email"}
-		clms[clms.length]={cn:"Registration Date",fn:"reg_date",ft:"date"}
-		if(adata.me.priv=="admin")
-			clms[clms.length]={cn:"Gender",fn:"gender"}
-		
+		var clms=[
+			{cn:"Name",fn:"name"},
+			{cn:"Primary Phone",fn:"phone"},
+			{cn:"Other Phone",fn:"phoneb"},
+			{cn:"Email",fn:"email"},
+			{cn:"Registration Date",fn:"reg_date",ft:"date"},
+			{cn:"Gender",fn:"gender"}
+		]
 		load_profile(rst.me,clms)
 		load_stock_sum(rst.stock_sum,rst.instock,rst.instockb)
 		load_orders_sum(rst.orders_sum)
 		load_supply_orders_sum(rst.supply_orders_sum)
 		load_suppliers(rst.suppliers,1)
 		load_chicken_stock_sum(rst.chicken_stock_sum)
-		adata.funders=rst.funders
-		load_funders(rst.funders,rst.me.priv)
 		var mbrs=" Group Members"
 		var gps=" Groups"
 		var sps=" Suppliers"
-		var fds=" Organizations"
 		if(rst.members_count==1)
 			mbrs=" Group Member"
 		if(rst.group_count==1)
-			gps=" Group"
+			gps="Group"
 		if(rst.suppliers_count==1)
-			sps=" Supplier"
-		if(rst.funders.length==1)
-			sps=" Organizations"
-
+			sps="Supplier"
 		$("#db-members-count").text(rst.members_count+mbrs)
 		$("#db-group-count").text(rst.group_count+gps)
 		$("#db-suppliers-count").text(rst.suppliers_count+sps)
-		$("#db-funders-count").text(rst.funders.length+fds)
 
 		var healthy=rst.cs_sum[0].healthy;
 		var sick=rst.cs_sum[0].sick;
@@ -466,11 +423,10 @@ function get_defaults() {
 		cstatus2_nl=healthy_nl+sick_nl
 		$("#db-cs").html(cstatus)
 		$("#db-cs-2").html("Laying Chicks: "+cstatus2+"<hr>Non-Laying Chicks:"+cstatus2_nl)
-		$(".child-div").hide()
+		$(".cd").hide()
 		$("#dashboard").show()
 	})
 }
-
 function load_supply_orders_sum(stock_sum) {
 	$("#db-supply-orders-pending-approval").html("0 Orders<hr> 0 Chicks<hr>UGX 0")
 	$("#db-supply-orders-pending-delivery").html("0 Orders<hr> 0 Chicks<hr>UGX 0")
@@ -529,8 +485,6 @@ function load_orders_sum(order_sum) {
 	}
 }
 function load_groups(groups,msg,hdr) {
-	$(".child-div").hide()
-	$("#groups-div").show()
 	if(!msg)
 		$("#no-groups").text("No groups added")
 	else
@@ -551,32 +505,20 @@ function load_groups(groups,msg,hdr) {
 		$("#groups-table").hide()
 		return 0;
 	}
-	
-	
-	var tr="<thead><tr><th>#</th> <th>Group No.</th> <th>Group Name</th>"
-	if(adata.me.priv=="admin")
-		tr+="<th>Organization</th>"
-	tr+="<th>Location</th><th></th></tr></thead><tbody>"
-
+	$(".cd").hide()
+	$("#groups-div").show()
+	var tr="<thead><tr><th>#</th> <th>Group No.</th> <th>Group Name</th> <th></th></tr></thead><tbody>"
 	for(var i=0;i<groups.length;i++){
 		var group_name=groups[i].group_name;
 		var location=groups[i].district+", "+groups[i].subcounty+", "+groups[i].parish
 		var status=groups[i].status
 		var group_id=groups[i].id;
 		var group_no=groups[i].group_no
-		var funder=groups[i].business_name;
-		if(funder==null)
-			funder="-"
-
-		var location=groups[i].district+", "+groups[i].county+", "+groups[i].subcounty+", "+groups[i].parish
 		if(status==0)
 			status="Unapproved"
 		var dpd="<div class='dropdown'> <button type='button' class='btn btn-primary dropdown-toggle' data-toggle='dropdown'>Options</button><div class='dropdown-menu'><a  href='#' class='dropdown-item' onclick=\"view_group_members("+group_id+","+i+")\"><i class='fa fa-group'></i> Members</a><a href='#' class='dropdown-item' onclick=\"show_edit_group_dialog("+i+")\"><i class='fa fa-edit'></i> Edit</a><a href='#' class='dropdown-item' onclick=\"show_delete_group_dialog("+group_id+")\"><i class='fa fa-edit'></i> Delete</a></div>"
 
-		tr+="<tr><td>"+(i+1)+"</td> <td>"+group_no+"</td> <td>"+group_name+"</td>  "
-		if(adata.me.priv=="admin")
-			tr+="<td>"+funder+"</td>"
-		tr+="<td>"+location+"</td><td>"+dpd+"</td></tr>"
+		tr+="<tr><td>"+(i+1)+"</td> <td>"+group_no+"</td> <td>"+group_name+"</td>  <td>"+dpd+"</td></tr>"
 	}
 	tr+="</tbody>"
 	$("#groups-table").html(tr)
@@ -585,7 +527,7 @@ function load_groups(groups,msg,hdr) {
 function load_suppliers(suppliers,sel) {
 	// body...
 	if(!sel){
-		$(".child-div").hide()
+		$(".cd").hide()
 		$("#suppliers-div").show()
 	}
 	if(suppliers.length){
@@ -612,94 +554,14 @@ function load_suppliers(suppliers,sel) {
 		if(suppliers[i].status==1)
 			reset_code="******"
 		var dpd="<div class='dropdown'> <button type='button' class='btn btn-primary dropdown-toggle' data-toggle='dropdown'>Options</button><div class='dropdown-menu'><a href='#' class='dropdown-item' onclick=\"show_edit_supplier_dialog("+i+")\"><i class='fa fa-edit'></i> Edit</a><a href='#' class='dropdown-item' onclick=\"show_delete_supplier_dialog("+supplier_id+")\"><i class='fa fa-edit'></i> Delete</a></div></div>"
-		var gender=suppliers[i].gender
-		tr+="<tr><td>"+(i+1)+"</td> <td><img gender="+gender+" onerror='no_image(this)' style='width:50px;height:50px' src=\"/uploads/profiles/supp-"+supplier_id+"?ts="+ts+"\"></td><td>"+supplier_no+"</td><td>"+reset_code+"</td> <td>"+supplier_name+"</td>  <td>"+business_name+"</td><td>"+phone+"</td><td>"+dpd+"<td></tr>"
+
+		tr+="<tr><td>"+(i+1)+"</td> <td><img onerror='no_image(this)' style='width:50px;height:50px' src=\"/uploads/profiles/supp-"+supplier_id+"?ts="+ts+"\"></td><td>"+supplier_no+"</td><td>"+reset_code+"</td> <td>"+supplier_name+"</td>  <td>"+business_name+"</td><td>"+phone+"</td><td>"+dpd+"<td></tr>"
 		ops+="<option value="+supplier_id+">"+business_name+"</option>"
 	}
 	tr+="</tbody>"
 	$("#suppliers-table").html(tr)
 
 	$("#supplier-id").html(ops)
-}
-function load_funders(funders,priv,tb) {
-	if(priv=="funder"){
-		$(".group-funder").hide()
-	}
-	var op="<option value=0></option>"
-	for(var i=0;i<funders.length;i++){
-		var sl=""
-		
-		op+="<option value="+funders[i].id+">"+funders[i].business_name+"</option>"
-	}
-	$("#group-funder").html(op)
-	if(tb){
-		$(".child-div").hide()
-		$("#funders-div").show()
-		var hd=[{cn:"#",ft:"serial"},{cn:"Org. No.",fn:"funder_no"},{cn:"Org. Name",fn:"business_name"},{cn:"Password",fn:"reset_code"},{cn:"",ft:"options"}]
-		var rs=funders;
-		var options=[{method:"edit_funder_dl",text:"Edit"},{method:"delete_funder",text:"Delete"}]
-		for(var i=0;i<rs.length;i++){
-			var reset_code=rs[i].reset_code
-
-			if(rs[i].status==1){
-
-				rs[i].reset_code="******"
-			}
-			else{
-
-				rs[i].reset_code=reset_code
-			}
-			rs[i].funder_no="FD"+rs[i].funder_no
-		}
-
-
-		gen_table(hd,rs,"funders-table","no-funders",options)
-	}
-}
-function create_funder(){
-	var funder_name=$("#funder-name").val()
-	var funder_phone=$("#funder-phone").val()
-	var funder_email=$("#funder-email").val()
-
-	var arr=[{fn:"Org. Name",val:funder_name},{fn:"Org. Phone",val:funder_phone,ft:"phone"},{fn:"Org. Email",val:funder_email,ft:"email"}]
-	var vr=check_empty(arr)
-	if(!vr)
-		return 0;
-	var data={rq:adata.axn,url:"/admin",funder_name:funder_name,funder_id:adata.id,funder_email:funder_email,funder_phone:funder_phone}
-	ajax_go(data,function(rst){
-		$("#create-funder-div").modal("hide")
-		adata.funders=rst.funders;
-		load_funders(rst.funders,rst.me.priv,1)
-	})
-}
-function delete_funder(i) {
-	var id=adata.funders[i].id;
-	var data={rq:"remove-funder",url:"/admin",id:id}
-	var cfm=confirm("Are you sure you want to remove this entry?")
-	if(!cfm)
-		return 0;
-	ajax_go(data,function(rst){
-		clear_fields()
-		adata.funders=rst.funders
-		load_funders(rst.funders,adata.me.priv,1)
-	})
-
-
-}
-function create_funder_dl(){
-	$("#create-funder-div").modal("show")
-	adata.axn="create-funder"
-	clear_fields()
-}
-function edit_funder_dl(i) {
-	var funders=adata.funders
-	var id=adata.funders[i].id;
-	adata.axn="edit-funder"
-	adata.id=id;
-	$("#funder-name").val(funders[i].business_name)
-	$("#funder-phone").val(funders[i].phone)
-	$("#funder-email").val(funders[i].email)
-	$("#create-funder-div").modal("show")
 }
 function load_chicken_stock_sum(rs) {
 	var rx=""
@@ -751,7 +613,6 @@ function show_edit_group_dialog(i) {
 	$("#district").val(group.district)
 	$("#village").val(group.village)
 	$("#meeting-place").val(group.meeting_place)
-
 	var meeting_day=group.meeting_day
 	if(!meeting_day)
 		$("#meeting-day").val(0)
@@ -815,7 +676,7 @@ function show_edit_supplier_dialog(i) {
 
 }
 function load_group_members(group_members) {
-	$(".child-div").hide()
+	$(".cd").hide()
 	$("#members-div").show()
 	if(group_members.length==0){
 		$("#no-group-members").show()
@@ -831,13 +692,11 @@ function load_group_members(group_members) {
 	for(var i=0;i<group_members.length;i++){
 		var name=group_members[i].name;
 		var phone=group_members[i].phone
-		if(phone==null)
-			phone=""
 		var id=group_members[i].id;
 		var userid=group_members[i].userid;
 		var role=group_members[i].role
 		var member_no="GM"+group_members[i].member_no
-		var gender=group_members[i].gender
+		
 		var status=group_members[i].status;
 		var reset_code=group_members[i].reset_code
 		var ts=new Date()
@@ -850,7 +709,7 @@ function load_group_members(group_members) {
 		op+="<a class='dropdown-item' href='#' onclick='edit_user_dl("+i+")'>Edit Details</a>"
 		op+="<a class='dropdown-item' href='#' onclick='remove_member("+id+")'>Remove Member</a>"
 		op+="</div></div>"
-		tr+="<tr><td>"+(i+1)+"</td><td><img gender="+gender+" onerror='no_image(this)' style='width:50px;height:50px' src=\"/uploads/profiles/gm-"+id+"?ts="+ts+"\"></td><td>"+name+"</td><td>"+member_no+"</td><td>"+reset_code+"</td><td>"+role+"</td><td>"+phone+"</td><td>"+op+"</td></tr>"
+		tr+="<tr><td>"+(i+1)+"</td><td><img onerror='no_image(this)' style='width:50px;height:50px' src=\"/uploads/profiles/gm-"+id+"?ts="+ts+"\"></td><td>"+name+"</td><td>"+member_no+"</td><td>"+reset_code+"</td><td>"+role+"</td><td>"+phone+"</td><td>"+op+"</td></tr>"
 	}
 	$("#members-table").html("</tbody>"+tr)
 	
@@ -867,13 +726,10 @@ function edit_user_dl(i){
 		$("#member-name").val(gm.name);
 		$("#email").val(gm.email)
 		$("#other-phone").val(gm.phoneb);
-		try{
-			var dob2=gm.dob2.split("-")
-			$("#year").val(dob2[0])
-			$("#month").val(dob2[1])
-			$("#day").val(dob2[2])
-		}
-		catch(e){}
+		var dob2=gm.dob2.split("-")
+		$("#year").val(dob2[0])
+		$("#month").val(dob2[1])
+		$("#day").val(dob2[2])
 		$("#gender").val(gm.gender);
 		$("#marital-status").val(gm.marital_status);
 		$("#dependants").val(gm.no_of_dependants);
@@ -947,9 +803,8 @@ function view_orders(status,nstatus){
 	})
 }
 function load_orders(orders) {
-	$(".child-div").hide()
+	$(".cd").hide()
 	$("#orders-div").show()
-
 	if(orders.length==0){
 		$("#orders-table").hide()
 		$("#no-orders").show()
@@ -989,25 +844,43 @@ function view_supply_orders(status){
 	})
 }
 function load_supply_orders(orders) {
-	adata.go=orders
-	$(".child-div").hide()
+	$(".cd").hide()
 	$("#supply-orders-div").show()
-	var th=[]
-	if(adata.me.priv=="admin")
-		th[th.length]={cn:"",ft:"cb",cl:"tb supply-orders-status-cb"}
-	th[th.length]={cn:"Order No",fn:"order_no"}
-	th[th.length]={cn:"Group",fn:"group_name"}
-	th[th.length]={cn:"Qty",fn:"qty"}
-	th[th.length]={cn:"Amount",fn:"amount",ft:"money"}
-	th[th.length]={cn:"Payment Method",fn:"method"}
-	th[th.length]={cn:"Payment Phone",fn:"phone"}
-	if(orders.length&&orders[0].supplier)
-		th[th.length]={cn:"Supplier",fn:"supplier"}
-	th[th.length]={cn:"Ordered on",fn:"order_time"}
-	th[th.length]={cn:"",ft:"options"}
-	var options=[{text:"Order Details",method:"view_supply_order_details"},{text:"Order Form",method:"view_order_form"}]
-	gen_table(th,orders,"supply-orders-table","no-supply-orders",options)
+	if(orders.length==0){
+		$("#supply-orders-table").hide()
+		$("#no-supply-orders").show()
+		$("#change-supply-order-status-parent").hide()
+		return 0;
+	}
+	else{
+		$("#no-supply-orders").hide()
+		$("#supply-orders-table").show()
+		$("#change-supply-order-status-parent").show()
+	}
+	supp_th=""
 
+	if(orders[0].supplier)
+		var supp_th="<th>Supplier</th>"
+	var tr="<thead><tr><th></th><th>Order No.</th> <th>Group</th> <th>Member</th><th>Quantity</th><th>Amount</th>"+supp_th+"<th>Ordered on</th></tr></thead><tbody>"
+	for(var i=0;i<orders.length;i++){
+		var order_no=orders[i].order_no
+		var id=orders[i].id;
+		var group_name=orders[i].group_name
+		var qty=orders[i].qty
+		var amount=orders[i].amount;
+		order_time=orders[i].order_time;
+		var member_name=orders[i].member_name;
+		var supp_td=""
+		if(orders[i].supplier){
+			var supplier=orders[i].supplier;
+			var supp_td="<td>"+supplier+"</td>"
+			
+		}
+
+		tr+="<tr><td><input type='checkbox' value="+id+" class='tb supply-orders-status-cb'></td></td> <td>"+order_no+"</td> <td>"+group_name+"</td><td>"+member_name+"</td> <td>"+qty+" Chicks</td><td>"+cx(amount)+"</td>"+supp_td+"<td>"+order_time+"</td></tr>"
+	}
+	tr+="</tbody>"
+	$("#supply-orders-table").html(tr)
 }
 
 function view_stock(status,nstatus){
@@ -1032,7 +905,7 @@ function view_stock(status,nstatus){
 	})
 }
 function load_stock(stock) {
-	$(".child-div").hide()
+	$(".cd").hide()
 	$("#stock-div").show()
 	if(stock.length==0){
 		$("#stock-table").hide()
@@ -1043,10 +916,7 @@ function load_stock(stock) {
 		$("#no-stock").hide()
 		$("#stock-table").show()
 	}
-	var tr="<thead><tr>"
-	if(adata.me.priv=="admin")
-		tr+="<th></th>"
-	tr+="<th>Stock No.</th> <th>Group</th> <th>Group Location</th><th>Qty</th><th>Payment</th><th>Posted on</th></tr></thead><tbody>"
+	var tr="<thead><tr><th></th><th>Stock No.</th> <th>Group</th> <th>Group Location</th><th>Qty</th><th>Payment</th><th>Posted on</th></tr></thead><tbody>"
 	for(var i=0;i<stock.length;i++){
 		var stock_no=stock[i].stock_no
 		var id=stock[i].id;
@@ -1055,10 +925,7 @@ function load_stock(stock) {
 		var qty=stock[i].trays
 		var amount=stock[i].amount;
 		posted_on=stock[i].posted_on
-		tr+="<tr>"
-		if(adata.me.priv=="admin")
-			tr+="<td><input type='checkbox' value="+id+" class='tb stock-status-cb'></td>"
-		tr+="<td>"+stock_no+"</td> <td>"+group_name+"</td> <td>"+location+"</td> <td>"+qty+"</td><td>"+cx(amount)+"</td><td>"+posted_on+"</td></tr>"
+		tr+="<tr><td><input type='checkbox' value="+id+" class='tb stock-status-cb'></td></td> <td>"+stock_no+"</td> <td>"+group_name+"</td> <td>"+location+"</td> <td>"+qty+"</td><td>"+cx(amount)+"</td><td>"+posted_on+"</td></tr>"
 	}
 	tr+="</tbody>"
 	$("#stock-table").html(tr)
@@ -1238,7 +1105,7 @@ function filter_group() {
 function load_cs(rst) {
 	$("#cs-hdr").text(rst.cshdr)
 
-	$(".child-div").hide()
+	$(".cd").hide()
 	$("#cs-div").show()
 	var cs=rst.chicken_status;
 	if(cs.length==0){
@@ -1278,7 +1145,7 @@ function get_chicken_stock(status) {
 	
 	var data={rq:"get-chicken-stock",url:"/admin",status:status}
 	ajax_go(data,function (rst) {
-		$(".child-div").hide()
+		$(".cd").hide()
 		$("#chicken-stock-div").show()
 		$("#chicken-stock-hdr").text(status)
 		load_chicken_stock(rst.chicken_stock)

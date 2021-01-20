@@ -35,8 +35,15 @@ exports.index=function (req,res) {
 		if(ajax){
 			return res.send({errmsg:"You need to have a supplier account"})
 		}
-		else
-			return res.redirect("/market")
+		else{
+			if(req.user.priv=="admin")
+				return res.redirect("/admin")
+			if(req.user.priv=="gm")
+				return res.redirect("/group")
+			if(req.user.priv=="customer")
+				return res.redirect("/market")
+			return res.redirect("/")
+		}
 	}
 	data.user=req.user;
 	data.me=req.user
@@ -47,11 +54,40 @@ exports.index=function (req,res) {
 				data.res=0;data.req=0;
 				res.send(data)
 			})
-			
 		})
 	}
 	else if(rq=="get-supply-orders"){
 		get_supply_orders(data,function () {
+			data.res=0;data.req=0;
+			res.send(data)
+		})
+	}
+	else if(rq=="add-stock"){
+		add_stock(data,function(){
+			get_stock(data,function (argument) {
+				data.res=0;data.req=0;
+				res.send(data)
+			})
+		})
+	}
+	else if(rq=="delete-stock"){
+		delete_stock(data,function(){
+			get_stock(data,function (argument) {
+				data.res=0;data.req=0;
+				res.send(data)
+			})
+		})
+	}
+	else if(rq=="edit-stock"){
+		edit_stock(data,function(){
+			get_stock(data,function () {
+				data.res=0;data.req=0;
+				res.send(data)
+			})
+		})
+	}
+	else if(rq=="get-stock"){
+		get_stock(data,function (argument) {
 			data.res=0;data.req=0;
 			res.send(data)
 		})
@@ -71,10 +107,14 @@ exports.index=function (req,res) {
 function get_dashboard_data(data,callback) {
 	
 	get_supply_orders_summary(data,function (argument) {
-		callback()
+		get_stock_sum(data,function () {
+			callback()
+		})
+		
 	})
 
 }
+
 function change_supply_orders_status(i,data,callback) {
 	var req=data.req;
 	var oid=req.query.oid
@@ -115,12 +155,85 @@ function get_supply_orders(data,callback) {
 	var req=data.req;
 	var status=req.query.status
 	var supplier_id=req.user.id;
-	var q="SELECT supply_orders.id,order_no,group_name,group_no,name AS member_name,group_members.phone AS member_phone, qty,(qty*price) AS amount,DATE_FORMAT(time_recorded,'%c %b %Y %l:%i %p') AS order_time,time_recorded FROM supply_orders,group_members,groups WHERE supply_orders.member_id=group_members.id AND supply_orders.group_id=groups.id AND supply_orders.status=? AND supplier_id=? ORDER BY time_recorded DESC"
+	var q="SELECT supply_orders.id,order_no,group_name,group_no,name AS member_name,group_members.phone AS member_phone, qty,(qty*price) AS amount,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded FROM supply_orders,group_members,groups WHERE supply_orders.member_id=group_members.id AND supply_orders.group_id=groups.id AND supply_orders.status=? AND supplier_id=? ORDER BY time_recorded DESC"
 	connection.query(q,[status,supplier_id],function (err,rst) {
 		if(err)
 			console.log(err.sqlMessage)
 		data.orders=rst;
-		console.log(rst)
 		callback()
 	})
 }
+
+function get_stock(data,callback) {
+	var req=data.req;
+	var supplier_id=req.user.id
+	var q="SELECT id,stock_no,qty,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS tr,DATEDIFF(now(),time_recorded) AS age,status FROM chicken_stock WHERE supplier_id=? ORDER BY time_recorded DESC"
+	connection.query(q,[supplier_id],function (err,rst) {
+		data.stock=rst;
+		if(err)
+			return console.log(err.sqlMessage)
+		
+		callback()
+	})
+}
+function get_stock_sum(data,callback) {
+	var req=data.req;
+	var supplier_id=req.user.id
+	var status="Ready for Sale"
+	var ostatus="Under Brooding"
+	var q="UPDATE chicken_stock SET status=? WHERE DATEDIFF(now(),time_recorded)>=60 AND status=?"
+	connection.query(q,[status,ostatus],function (err,rst) {
+		if(err)
+			return console.log(err.sqlMessage)
+		var q="SELECT SUM(qty) AS qty,status FROM chicken_stock WHERE supplier_id=? GROUP BY status"
+		connection.query(q,[supplier_id],function (err,rst) {
+
+
+			if(err)
+				return console.log(err.sqlMessage)
+
+			data.stock_sum=rst;
+
+			callback()
+		})
+	})
+}
+function add_stock(data,callback){
+	var req=data.req;
+	var supplier_id=req.user.id
+	var stock_no=db.gen_random()
+	var qty=req.query.qty;
+
+	var q="INSERT INTO chicken_stock(stock_no,supplier_id,qty) VALUES(?,?,?)"
+	connection.query(q,[stock_no,supplier_id,qty],function(err,rst){
+		if(err)
+			return console.log(err.sqlMessage)
+		callback()
+	})
+}
+function delete_stock(data,callback) {
+	var req=data.req;
+	var id=req.query.id;
+	var q="DELETE FROM chicken_stock WHERE id=?"
+	connection.query(q,[id],function (err,rst) {
+		// body...
+		if(err)
+			return console.log(err.sqlMessage)
+		callback()
+	})
+}
+function edit_stock(data,callback) {
+	var req=data.req;
+	var id=req.query.id;
+	var qty=req.query.qty;
+
+	var q="UPDATE chicken_stock SET qty=? WHERE id=?"
+	connection.query(q,[qty,id],function (err,rst) {
+		// body...
+		if(err)
+			return console.log(err.sqlMessage)
+		callback()
+	})
+}
+
+

@@ -3,6 +3,21 @@ $(function (argument) {
   try{
    populate_date()
     populate_cs_day()
+    $('.dropdown-menu a.dropdown-toggle').on('click', function(e) {
+      if (!$(this).next().hasClass('show')) {
+        $(this).parents('.dropdown-menu').first().find('.show').removeClass('show');
+      }
+      var $subMenu = $(this).next('.dropdown-menu');
+      $subMenu.toggleClass('show');
+
+
+      $(this).parents('li.nav-item.dropdown.show').on('hidden.bs.dropdown', function(e) {
+        $('.dropdown-submenu .show').removeClass('show');
+      });
+
+
+      return false;
+    });
 
   }
   catch(e){
@@ -268,6 +283,7 @@ function ajax_go(data,callback) {
 
     if(data.url)
         url=url+data.url
+   
     if(data.rq=="get-defaults")
       $(".container").hide()
     $("#loading-div").show()
@@ -294,7 +310,7 @@ function ajax_go(data,callback) {
                 }
                 callback(result)
 
-              }, 2000);
+              }, 1000);
                 
             },
 
@@ -304,8 +320,8 @@ function ajax_go(data,callback) {
                 setTimeout(function() {
                 $("#loading-div").hide()
 
-              }, 3000);
-              setTimeout(function() {}, 5000);
+              }, 2000);
+              setTimeout(function() {}, 2000);
                 ajax_go(data,callback)
                 //display_err("Unable to connect to server, you are probably offline",3000)
             }
@@ -314,7 +330,13 @@ function ajax_go(data,callback) {
 
 }
 function no_image(el){
-  $(el).hide()
+  var gender=$(el).attr("gender")
+  if(gender=="Male")
+    $(el).attr("src","/img/male-ava.jpg")
+  else if(gender=="Female")
+    $(el).attr("src","/img/female-ava.jpg")
+  else
+    $(el).attr("src","/img/neutral.png")
 }
 function ajax_file(data,data2,callback) {
 
@@ -348,7 +370,7 @@ function ajax_file(data,data2,callback) {
                 }
                callback(result)
 
-              }, 2000);
+              }, 1000);
                 
             },
 
@@ -358,8 +380,8 @@ function ajax_file(data,data2,callback) {
                 setTimeout(function() {
                 $("#loading-div").hide()
 
-              }, 3000);
-              setTimeout(function() {}, 5000);
+              }, 1000);
+              setTimeout(function() {}, 2000);
                 //ajax_(data,callback)
                 //display_err("Unable to connect to server, you are probably offline",3000)
             }
@@ -539,6 +561,113 @@ function check_phone(phone,eid,type) {
   if(phone.length==10){
     get_user(phone,eid,type)
   }
+}
+function reset_password_dl(){
+  $("#reset-password-div").modal("show")
+
+}
+function reset_password(){
+  var old_pass=$("#old-pass").val()
+  var new_pass=$("#new-pass").val()
+  //Reset password for logged in uses; lg
+  if(new_pass.length<6)
+      return display_err("Password should be 6 characters or more")
+  var data={rq:"reset-password-lg",old_pass:old_pass,new_pass:new_pass}
+  ajax_go(data,function (rst) {
+    clear_fields()
+    $("#reset-password-div").modal("hide")
+    display_succ("Password reset succesfully")
+  })
+
+}
+function load_profile(me,clms) {
+  
+  var tr=""
+  for(var i=0;i<clms.length;i++){
+    var fn=clms[i].fn;
+    var cn=clms[i].cn;
+    var ft=clms[i].ft;
+    var fv=me[fn]
+    if(fv=="null"||fv==null||fv==undefined||fv=="")
+      fv="-"
+    if(ft=="date")
+      fv=new Date(fv).toDateString()
+    tr+="<tr><td>"+cn+"</td><td>"+fv+"</td></tr>"
+  }
+  $("#profile-table").html(tr)
+  //
+
+}
+function view_profile() {
+  $("#profile-modal").modal("show")
+}
+function gen_table(hd,rs,tid,nid,options){
+  if(!rs.length){
+    $("#"+nid).show()
+    $("#"+tid).hide()
+    return 0
+  }
+  else{
+    $("#"+nid).hide()
+    $("#"+tid).show()
+  }
+  var th=""
+  for(var i=0;i<hd.length;i++){
+    var cn=hd[i].cn;
+    th+="<th>"+cn+"</th>"
+  }
+  var thead="<thead>"+th+"</thead>"
+  var tr=""
+  for(var i=0;i<rs.length;i++){
+    
+    var td=""
+    for(var j=0;j<hd.length;j++){
+      var fn=hd[j].fn;
+      var cn=hd[j].cn
+      var ft=hd[j].ft
+      if(ft=="serial"){
+        fv=i+1
+      }
+
+      else if(ft=="options"){
+        fv=load_options(options,i)
+      }
+      else if(ft=="cb"){
+        cl=hd[j].cl;
+        var id=rs[i].id;
+        fv="<input type='checkbox' value=\""+id+"\" class=\""+cl+"\">"
+      }
+      else if(ft=="money"){
+        fv=cx(rs[i][fn])
+
+      }
+      else
+      {
+        var fv=rs[i][fn]
+        if(fv==undefined)
+          fv=""
+      }
+
+      td+="<td>"+fv+"</td>"
+    }
+    tr+="<tr>"+td+"</tr>"
+    
+  }
+  var tbody="<tbody>"+tr+"</tbody>"
+  var table=thead+tbody
+
+  $("#"+tid).html(table)
+}
+
+function load_options(arr,index) {
+  var op="<div class='btn-group' >"
+    op+="<button class='btn btn-primary dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>Options</button>"
+    op+=" <div class='dropdown-menu'>"
+    for(var i=0;i<arr.length;i++){
+      op+="<a class='dropdown-item' href='#' onclick='"+arr[i].method+"("+index+")'>"+arr[i].text+"</a>"
+    }
+    op+="</div></div>"
+    return op
 }
 function get_user(phone,eid,type) {
   var data={url:"/market",rq:"get-user",phone:phone}
@@ -766,4 +895,30 @@ function validate_date(inputText)
 
 
   
+function back(elid) {
+  $(".child-div").hide()
+  $("#"+elid).show()
+}
+function order_form_load(rst){
 
+  if(rst=="error"){
+    $("#no-form-div").show()
+    $("#order-form-img").hide()
+  }
+  else{
+    $("#no-form-div").hide()
+    $("#order-form-img").show()
+  }
+  
+}
+function view_order_form(index){
+  var gon=adata.go[index].order_no
+  adata.gon=gon;
+  $("#order-form-img").hide()
+  $("#order-form-modal").modal("show")
+  var ts=new Date()
+  var src="/uploads/forms/form-"+gon+"?ts="+ts;
+  $("#order-form-img").attr("src",src)
+
+
+}

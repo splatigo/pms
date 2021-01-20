@@ -21,7 +21,10 @@ block content
                 span(class="navbar-toggler-icon")
             div(class="collapse navbar-collapse" id="nav-content")
                 ul(class="navbar-nav mr-auto")
-                    
+                    li(class="nav-item" onclick="get_stock()")
+                        a(class="nav-link" href="#") 
+                            span(class="fa fa-object-group") 
+                            span  Stock
                     li(class="nav-item dropdown")
                         a(class="nav-link dropdown-toggle" id="a-orders" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false") 
                             span(class="fa fa-outdent") 
@@ -29,19 +32,14 @@ block content
                         div(class="dropdown-menu" aria-labelledby="a-orders")
                             a(href="#" class='dropdown-item collapse-navbar' onclick="view_supply_orders('Out for Delivery')") Pending Orders
                             a(href="#"  class='dropdown-item collapse-navbar' onclick="view_supply_orders('Delivered')") Delivered
-                    li(class="nav-item dropdown hd" id="my-groups-li")
-                        a(class="nav-link dropdown-toggle a-my-groups" href="#" id="a-my-groups" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false")
-
-                            span(class="fa fa-modx")
-                            span  My Groups
-                        div(class="dropdown-menu" aria-labelledby="a-my-groups" id="my-groups-div")
                 ul(class="navbar-nav ml-auto")
                     li(class="nav-item dropdown user-li hd")
                         a(class="nav-link dropdown-toggle" href="#" id="a-user-options" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false")
                             span(class="fa fa-user")
                             span(id="my-name")
                         div(class="dropdown-menu" aria-labelledby="a-user-options" id="user-options")
-                            a(href="#" class="dropdown-item") <i class='fa fa-user-o'></i> Profile
+                            a(href="#" class="dropdown-item" onclick="view_profile()") <i class='fa fa-user-o'></i> Profile
+                            a(href="#" class="dropdown-item" onclick="reset_password_dl()") <i class='fa fa-key'></i> Reset Password
                             a(href="#" class="dropdown-item confirm-axn" axn='signout') <i class='fa fa-sign-out'></i> Signout
                     
     div(class="container")
@@ -50,9 +48,19 @@ block content
             div(class="card card-prmary")
                 div(class="card-header bg-custom text-white") <span class='fa fa-dashboard'></span>  <span id="business-name"></span> / Dashboard
                 div(class="card-body")
-                    div(class="row row-cols-1 row-cols-md-2")
-                        
-                        div(class="col mb-6")
+                    div(class="row row-cols-1 row-cols-md-3")
+                        div(class="col mb-4")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center")
+                                        span(class="fa fa-indent ")
+                                   
+                                        span  Chicken Stock
+
+                                div(class="card-body cb-link" onclick="")
+                                    p(align='center' )
+                                        span(id="db-stock")
+                        div(class="col mb-4")
                             div(class="card")
                                 div(class="card-header bg-custom text-white")
                                     p(align="center")
@@ -61,9 +69,10 @@ block content
                                         span  Pending Orders
 
                                 div(class="card-body cb-link" onclick="view_supply_orders('Out for Delivery')")
-                                    p(align='center' style="font-size:20px;")
+                                    p(align='center')
                                         span(id="db-supply-orders-out-for-delivery")
-                        div(class="col mb-6")
+
+                        div(class="col mb-4")
                             div(class="card")
                                 div(class="card-header bg-custom text-white")
                                     p(align="center")
@@ -72,7 +81,7 @@ block content
                                         span  Orders Delivered
 
                                 div(class="card-body cb-link" onclick="view_supply_orders('Delivered')")
-                                    p(align='center' style="font-size:20px;")
+                                    p(align='center')
                                         span(id="db-supply-orders-delivered")
         div(class="cd hd" id="supply-orders-div")
             div(class="card card-prmary")
@@ -80,56 +89,41 @@ block content
                     h5
                         span(class="fa fa-filter")
                         span(id="supply-orders-curr-status")
-                div(class="card-body")
-                   
-                     
-                           
+                div(class="card-body") 
                     button(class="btn btn-primary" onclick="change_supply_orders_status('Delivered')" id="chx-status-btn") Mark as Delivered
                     p
                     div(class="table-responsive")
                         table(id="supply-orders-table" class="table table-striped")
                     p(class="alert alert-info hd" id="no-supply-orders") No supply orders in selected category
-        div(class="modal fade" tabindex="-1" aria-labelledby="profile-div" aria-hidden="true" id="profile-div")
-                div(class="modal-dialog")
-                    div(class="modal-content")
-                        div(class="modal-header")
-                            h5(class="modal-title") Profile
-                            button(type="button" class="close" data-dismiss="modal" aria-label="Close")
-                                span(aria-hidden="true") &times;
-                        div(class="modal-body")
-                            table
-                                tr
-                                    td Name
-                                    td(id="name")
-                                tr
-                                    td Business Name
-                                    td(id="business-name")
-                                tr
-                                    td Phone
-                                    td(id="phone")
-                                tr
-                                    td Other Phone
-                                    td(id="other-phone")
-                                tr
-                                    td Email
-                                    td(id="email")
-                                tr
-                                    td District
-                                    td(id="district")
-                                tr
-                                    td County
-                                    td(id="county")
-                                tr
-                                    td Subcounty
-                                    td(id="sub-county")
-                                tr
-                                    td Parish
-                                    td(id="parish")
-                                tr
-                                    td Village
-                                    td(id="village")
-
-                            
+        
+        div(class="cd hd" id="stock-div")
+            div(class="card card-prmary")
+                div(class="card-header bg-custom text-white")
+                    span Chicken Stock
+                div(class="card-body")
+                    button(class="btn btn-primary" onclick="new_stock_dl()") New Stock
+                    p
+                    div(class="table-responsive")
+                        table(id="stock-table" class="table table-striped")
+                    p(class="alert alert-info hd" id="no-stock") No stock added
+        div(class="modal fade" tabindex="-1" aria-labelledby="new-stock-div" aria-hidden="true" id="new-stock-div")
+            div(class="modal-dialog" )
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h5(class="modal-title" id="stock-hdr") New Chicken Stock
+                        button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                    div(class="modal-body")
+                        p(class="quick-info") *This record should be added on the day brooding starts
+                        form
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Number of Chicks
+                                div(class="col-sm-8")
+                                    input(type="number" class="form-control" id="stock-qty" placeholder="Quantity")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label")
+                                div(class="col-sm-8")
+                                    button(type="button" class="btn btn-primary form-control" onclick="add_stock()") Submit                     
         div(class="modal fade" tabindex="-1" aria-labelledby="change-pass-div" aria-hidden="true" id="change-pass-div")
                 div(class="modal-dialog")
                     div(class="modal-content")

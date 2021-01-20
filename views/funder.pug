@@ -17,15 +17,11 @@ block content
                         a(class="nav-link get-groups collapse-navbar" href="#") 
                             span(class="fa fa-group") 
                             span  Groups
-                    li(class="nav-item dropdown hd admin-tp")
-                        a(class="nav-link dropdown-toggle" href="#" id="a-users" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false") 
+                    li(class="nav-item")
+                        a(class="nav-link get-suppliers collapse-navbar" href="#") 
                             span(class="fa fa-steam-square") 
-                            span  Users
-                        div(class="dropdown-menu" aria-labelledby="a-users")
-                            a(href="#" class='dropdown-item collapse-navbar get-suppliers') Suppliers
-                            a(href="#" class='dropdown-item collapse-navbar get-funders') Organizations
-                            
-                    li(class="nav-item dropdown hd admin-tp")
+                            span  Suppliers
+                    li(class="nav-item dropdown")
                         a(class="nav-link dropdown-toggle" id="a-orders" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false") 
                             span(class="fa fa-outdent") 
                             span  Egg Orders
@@ -50,34 +46,27 @@ block content
                             a(href="#" class='dropdown-item collapse-navbar' onclick="view_stock('Pending Approval','Pending Payment')") Pending Approval
                             a(href="#" class='dropdown-item collapse-navbar' onclick="view_stock('Pending Payment','Paid')") Pending Payment
                             a(href="#"  class='dropdown-item collapse-navbar' onclick="view_stock('Paid')") Paid
-                   
+                    li(class="nav-item dropdown")
+                        a(class="nav-link dropdown-toggle" id="a-pricing" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false") 
+                            span(class="fa fa-gear") 
+                            span  Settings
                         div(class="dropdown-menu" aria-labelledby="a-pricing")
-                            
+                            a(href="#" class='dropdown-item collapse-navbar' id="a-set-price") Egg Selling Price
+                            a(href="#" class='dropdown-item collapse-navbar' id="a-set-buying-price") Egg Buying Price
+                            a(href="#" class='dropdown-item collapse-navbar' id="a-set-chicken-price") Chicken Price
                 ul(class="navbar-nav ml-auto")
                     li(class="nav-item dropdown user-li hd")
                         a(class="nav-link dropdown-toggle" href="#" id="a-user-options" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false")
-                            span(class="fa fa-gear")
-                            span &nbspSettings
-                        ul(class="dropdown-menu dropdown-menu-right" aria-labelledby="a-user-options" id="user-options")
-                            
-                            
-                            li(class="dropdown-submenu admin-tp")
-                                a(href="#" class="dropdown-item dropdown-toggle") <i class='fa fa-money'></i> Pricing
-                                ul(class="dropdown-menu")
-                                    a(href="#" class='dropdown-item collapse-navbar admin-tp' id="a-set-price")  Egg Selling Price
-                                    a(href="#" class='dropdown-item collapse-navbar admin-tp' id="a-set-buying-price") Egg Buying Price
-                                    a(href="#" class='dropdown-item collapse-navbar admin-tp' id="a-set-chicken-price") Chicken Price
-                                
-                            li
-                                a(href="#" class="dropdown-item" onclick="view_profile()") <i class='fa fa-user-o'></i> Profile
-                            li
-                                a(href="#" class="dropdown-item" onclick="reset_password_dl()") <i class='fa fa-key'></i> Reset Password
-                            li
-                                a(href="#" class="dropdown-item confirm-axn" axn='signout') <i class='fa fa-sign-out'></i> Signout
+                            span(class="fa fa-user")
+                            span(id="my-name")
+                        div(class="dropdown-menu dropdown-menu-right" aria-labelledby="a-user-options" id="user-options")
+                            a(href="#" class="dropdown-item" onclick="view_profile()") <i class='fa fa-user-o'></i> Profile
+                            a(href="#" class="dropdown-item" onclick="reset_password_dl()") <i class='fa fa-key'></i> Reset Password
+                            a(href="#" class="dropdown-item confirm-axn" axn='signout') <i class='fa fa-sign-out'></i> Signout
 
     div(class="container")
         p
-         div(class="child-div" id="dashboard")
+         div(class="cd" id="dashboard")
             div(class="card card-prmary")
                 div(class="card-header bg-custom text-white") <span class='fa fa-dashboard'></span>  Dashboard
                 div(class="card-body")
@@ -86,8 +75,8 @@ block content
                             div(class="card")
                                 div(class="card-header bg-custom text-white")
                                     p(align="center")
-                                        span(class="fa fa-group") 
-                                        span  Counts
+                                        span(class="fa fa-group")
+                                        span Counts
                                 div(class="card-body  cb-link")
                                     div(class="div-hr")
                                       
@@ -96,12 +85,11 @@ block content
                                         hr
                                         span(id="db-members-count" class="get-groups")
                                         hr
-                                        span(id="db-suppliers-count" class="get-suppliers hd admin-tp")
-                                        hr
-                                        span(id="db-funders-count" class="get-funders hd admin-tp")
+                                        
+                                        span(id="db-suppliers-count" class="get-suppliers")
                         
                                     
-                        div(class="col mb-3 hd admin-tp")
+                        div(class="col mb-3")
                             div(class="card")
                                 div(class="card-header bg-custom text-white")
                                     p(align="center")
@@ -147,7 +135,7 @@ block content
                                        
                                        
                                         
-                        div(class="col mb-3 hd admin-tp")
+                        div(class="col mb-3")
                             div(class="card")
                                 div(class="card-header bg-custom text-white")
                                     p(align="center")
@@ -257,7 +245,7 @@ block content
                                         span(id="db-supply-orders-delivered")
 
         p
-        div(class="child-div hd" id="groups-div")
+        div(class="cd hd" id="groups-div")
             button(class="btn btn-primary a-create-group") <i class='fa fa-plus'></i> New Group
             span &nbsp
 
@@ -313,8 +301,8 @@ block content
                     div(class="table-responsive")
                    
                         table(id="groups-table" class="table table-striped")
-                    p(class="alert alert-info" id="no-groups") No groups added
-        div(class="child-div hd" id="suppliers-div")
+            p(class="alert alert-info" id="no-groups") No groups added
+        div(class="cd hd" id="suppliers-div")
             button(class="btn btn-primary a-create-supplier") <i class='fa fa-plus'></i> New Supplier
             p
             div(class="card card-prmary")
@@ -326,20 +314,8 @@ block content
                     div(class="table-responsive")
                         table(id="suppliers-table" class="table table-striped")
                     p(class="alert alert-info" id="no-suppliers") No suppliers added
-        div(class="child-div hd" id="funders-div")
-            button(class="btn btn-primary" onclick="create_funder_dl()") <i class='fa fa-plus'></i> New Organization
-            p
-            div(class="card card-prmary")
-                div(class="card-header bg-custom text-white")
-                 
-                        span(class="fa fa-group")
-                        span(id="groups-hdr")  Organizations List
-                div(class="card-body")
-                    div(class="table-responsive")
-                        table(id="funders-table" class="table table-striped")
-                    p(class="alert alert-info" id="no-funders") No organizations added
         
-        div(class="child-div hd" id="orders-div")
+        div(class="cd hd" id="orders-div")
             div(class="card card-prmary")
                 div(class="card-header bg-custom text-white")
                     h5
@@ -352,14 +328,14 @@ block content
                     div(class="table-responsive")
                         table(id="orders-table" class="table table-striped")
                     p(class="alert alert-info hd" id="no-orders") No egg orders in selected category
-        div(class="child-div hd" id="supply-orders-div")
+        div(class="cd hd" id="supply-orders-div")
             div(class="card card-prmary")
                 div(class="card-header bg-custom text-white")
                     h5
                         span(class="fa fa-filter")
                         span(id="supply-orders-curr-status")
                 div(class="card-body")
-                    div(class="dropdown hd admin-tp")
+                    div(class="dropdown")
                         button(class="btn btn-primary dropdown-toggle" type="button" id="change-supply-order-status-parent" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false") Change Order Status
                         div(class="dropdown-menu" aria-labelledby="change-supply-order-status-parent")
                             button(class="dropdown-item change-supply-order-status"  onclick="change_supply_orders_status('Pending Delivery')") Pending Delivery
@@ -369,7 +345,6 @@ block content
                     div(class="table-responsive")
                         table(id="supply-orders-table" class="table table-striped")
                     p(class="alert alert-info hd" id="no-supply-orders") No chicken orders in selected category
-        
         div(class="modal fade" tabindex="-1" aria-labelledby="assign-supplier-div" aria-hidden="true" id="assign-supplier-div")
             div(class="modal-dialog" )
                 div(class="modal-content")
@@ -389,21 +364,7 @@ block content
                                 label(class="col-sm-4 col-form-label")
                                 div(class="col-sm-8")
                                     button(type="button" class="btn btn-primary form-control" id="assign-supplier-btn") Assign & Mark as Out for Delivery
-        div(class="modal fade" tabindex="-1" aria-labelledby="order-form-modal" aria-hidden="true" id="order-form-modal")
-            div(class="modal-dialog" )
-                div(class="modal-content")
-                    div(class="modal-header")
-                        h5(class="modal-title") 
-                        button(type="button" class="close" data-dismiss="modal" aria-label="Close")
-                            span(aria-hidden="true") &times;
-                    div(class="modal-body")
-                           
-                        div(style="text-align:center;width:100%")
-                            img(class="hd" style="max-width:100%" id="order-form-img" onerror="order_form_load('error')" onload="order_form_load()")
-                        div(class="hd" id="no-form-div" style="text-align:center")
-                            span(class="fa fa-photo")
-                            p No Order Form Uploaded
-        div(class="child-div hd" id="stock-div")
+        div(class="cd hd" id="stock-div")
             div(class="card card-prmary")
                 div(class="card-header bg-custom text-white")
                     h5
@@ -411,14 +372,14 @@ block content
                         span(id="curr-stock-status")
 
                 div(class="card-body")
-                    div(class="hd admin-tp")
-                        button(id="chx-stock-status-btn" class="btn btn-primary" onclick="change_stock_status()")
+                       
+                    button(id="chx-stock-status-btn" class="btn btn-primary" onclick="change_stock_status()")
                     p
                     div(class="table-responsive")
                         table(id="stock-table" class="table table-striped")
                     p(class="alert alert-info hd" id="no-stock") No eggs stock in selected category
         
-        div(class="child-div hd" id="cs-div")
+        div(class="cd hd" id="cs-div")
             div(class="modal fade" tabindex="-1" aria-labelledby="cs-modal" aria-hidden="true" id="cs-modal")
                 div(class="modal-dialog" )
                     div(class="modal-content")
@@ -447,7 +408,7 @@ block content
                     br
                     div(class="table-responsive")
                         table(id="cs-table" class="table table-striped")
-                    p(class="alert alert-info hd" id="no-cs") No chicken status
+                    p(class="alert alert-info hd" id="no-cs") No chicken status for selected period
         
         div(class="modal fade" tabindex="-1" aria-labelledby="create-group-div" aria-hidden="true" id="create-group-div" data-backdrop="static")
             div(class="modal-dialog modal-lg modal-dialog-scrollable")
@@ -462,10 +423,6 @@ block content
                                 label(class="col-sm-3 col-form-label") Group Name
                                 div(class="col-sm-9")
                                     input(type="text" class="form-control" id="group-name" placeholder="Group name")
-                            div(class="form-group row  group-funder")
-                                label(class="col-sm-3 col-form-label") Organization
-                                div(class="col-sm-9")
-                                   select(class="form-control" id="group-funder")
                             div(class="form-group row")
                                 label(class="col-sm-3 col-form-label") District
                                 div(class="col-sm-9")
@@ -572,7 +529,7 @@ block content
                                 div(class="col-sm-8")
                                     button(type="button" class="btn btn-primary form-control" id="set-buying-price-btn") Set Price
 
-        div(class="child-div hd" id="chicken-stock-div")
+        div(class="cd hd" id="chicken-stock-div")
             div(class="card card-prmary")
                 div(class="card-header bg-custom text-white")
                     span Chicken Stock
@@ -587,7 +544,7 @@ block content
                     div(class="table-responsive")
                         table(id="chicken-stock-table" class="table table-striped")
                     p(class="alert alert-info hd" id="no-chicken-stock") No stock added
-        div(class="child-div hd" id="members-div")
+        div(class="cd hd" id="members-div")
             
             div(class="card card-prmary")
                 div(class="card-header bg-custom text-white") <span id="group-name-2"></span>
@@ -613,13 +570,6 @@ block content
                                 div(class="col-sm-8")
                                     input(type="text" class="form-control" id="member-name" placeholder="Name" required)
                             div(class="form-group row")
-                                label(class="col-sm-4 col-form-label") Gender
-                                div(class="col-sm-8")
-                                   select(id="gender" class="form-control" required)
-                                    option(value=0)
-                                    option(value="Male") Male
-                                    option(value="Female") Female
-                            div(class="form-group row")
                                 label(class="col-sm-4 col-form-label") Email
                                 div(class="col-sm-8")
                                     input(type="text" class="form-control" id="email" placeholder="Email" required)
@@ -642,7 +592,13 @@ block content
                                                 select(id="month" class="form-control month")
                                             td
                                                 select(id="year" class="form-control year")
-                            
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Gender
+                                div(class="col-sm-8")
+                                   select(id="gender" class="form-control" required)
+                                    option(value=0)
+                                    option(value="Male") Male
+                                    option(value="Female") Female
                             div(class="form-group row")
                                 label(class="col-sm-4 col-form-label") Marital Status
                                 div(class="col-sm-8")
@@ -859,30 +815,3 @@ block content
                                 label(class="col-sm-3 col-form-label")
                                 div(class="col-sm-9")
                                     button(class="form-control btn btn-primary" id="create-supplier-btn" type="button") Create
-        div(class="modal fade" tabindex="-1" aria-labelledby="create-funder-div" aria-hidden="true" id="create-funder-div" data-backdrop="static")
-            div(class="modal-dialog modal-lg modal-dialog-scrollable")
-                div(class="modal-content")
-                    div(class="modal-header")
-                        h5(class="modal-title" id="create-supplier-hdr") Add Organization
-                        button(type="button" class="close" data-dismiss="modal" aria-label="Close")
-                            span(aria-hidden="true") &times;
-                    div(class="modal-body")
-                        form
-                            
-                            div(class="form-group row")
-                                label(class="col-sm-3 col-form-label") Organization Name
-                                div(class="col-sm-9")
-                                    input(type="text" class="form-control" id="funder-name" placeholder="Org. Name")
-                            div(class="form-group row")
-                                label(class="col-sm-3 col-form-label") Phone
-                                div(class="col-sm-9")
-                                    input(type="text" class="form-control" id="funder-phone" placeholder="Phone")
-                            div(class="form-group row")
-                                label(class="col-sm-3 col-form-label") Org. Email
-                                div(class="col-sm-9")
-                                    input(type="text" class="form-control" id="funder-email" placeholder="Email")
-                    div(class="modal-footer")
-                            div(class="form-group row")
-                                label(class="col-sm-3 col-form-label")
-                                div(class="col-sm-9")
-                                    button(class="form-control btn btn-primary" onclick="create_funder()" type="button") Submit

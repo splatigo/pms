@@ -17,11 +17,22 @@ var connection=mysql.createConnection(
 })
 exports.index=function (req,res) {
 	var data={req:req,res:res}
+
 	var rq=req.query.rq;
+
 	if(req.cookies.user&&req.cookies.user!="0")
 		req.user=req.cookies.user;
-	if(req.user)
-		return res.redirect("/market")
+
+	if(req.user&&rq!="reset-password-lg"){
+		
+		if(req.user.priv=="admin")
+			return res.redirect("/admin")
+		if(req.user.priv=="gm")
+			return res.redirect("/group")
+		if(req.user.priv=="supplier")
+			return res.redirect("/supplier")
+	}
+
 	if(rq=="register"){
 		register_user(data,function () {
 			data.req=0;data.res=0;
@@ -42,6 +53,13 @@ exports.index=function (req,res) {
 	}
 	else if(rq=="reset-password"){
 		reset_password(data,function () {
+			data.req=0;data.res=0;
+			res.send(data)
+		})
+	}
+	else if(rq=="reset-password-lg"){
+		//for logged in user
+		reset_password_lg(data,function (argument) {
 			data.req=0;data.res=0;
 			res.send(data)
 		})
@@ -102,16 +120,40 @@ function send_reset_code(data,callback) {
 		callback()
 	})
 }
+
 function reset_password(data,callback) {
 	var req=data.req;
 	var id=req.query.id
 	var password=req.query.password;
 	var table=req.query.table;
-
-	var q="UPDATE "+table+" SET password=SHA1(?) WHERE id=?"
+	var q="UPDATE "+table+" SET password=SHA1(?),status=1 WHERE id=?"
 	var arr=[password,id]
 	connection.query(q,arr,function (err,rst) {
 		callback()
+	})
+}
+function reset_password_lg(data,callback) {
+	var req=data.req;
+	var id=req.user.id;
+	var new_pass=req.query.new_pass;
+	var old_pass=req.query.old_pass
+	var table=req.user.type;
+
+	var q="SELECT *FROM "+table+" WHERE id=? AND password=SHA1(?)"
+	connection.query(q,[id,old_pass],function (err,rst) {
+		if(err)
+			return err;
+		if(rst.length==0){
+			data.errmsg="Old password is incorrect"
+			return callback()
+		}
+		else{
+			var q="UPDATE "+table+" SET password=SHA1(?),status=1 WHERE id=?"
+			var arr=[new_pass,id]
+			connection.query(q,arr,function (err,rst) {
+				callback()
+			})
+		}
 	})
 }
 function register_user(data,callback) {

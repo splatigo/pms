@@ -1,6 +1,79 @@
 var adata={}
+//window.localStorage.removeItem("cart")
+function  remove_from_cart(index) {
+	var cart=window.localStorage.getItem("cart")
+	if(cart==null||cart=="null")
+		cart=[]
+	else
+		cart=JSON.parse(cart)
+	var ncart=[];var k=0;
+	for(var i=0;i<cart.length;i++){
+		if(i==index){
+
+		}
+		else
+			ncart[k++]=cart[i]
+	}
+	cart=ncart;
+	window.localStorage.setItem("cart",JSON.stringify(cart))
+	load_cart()
+}
+function load_cart() {
+	var cart=window.localStorage.getItem("cart")
+	if(cart==null||cart=="null")
+		cart=[]
+	else
+		cart=JSON.parse(cart)
+
+	if(cart.length==0){
+		$("#no-cart").text("")
+		$("#cart-modal").modal("show")
+
+		$("#cart-table,#cart-footer").hide()
+		$("#empty-cart-div").show()
+		return 0
+	}
+	$("#cart-table,#cart-footer").show()
+	$("#empty-cart-div").hide()
+	var tno=0
+	for(var i=0;i<cart.length;i++){
+		tno+=Number(cart[i].qty);
+	}
+	if(tno==0)
+		tno=""
+	$("#no-cart").text(tno)
+	var tr="<thead><tr><th></th><th>Member</th> <th>Qty</th><th>Unit</th><th>Total</th></tr><thead><tbody>"
+	var ttotal=0;
+	for(var i=0;i<cart.length;i++){
+		var qty=cart[i].qty;
+		var price=adata.settings.chicken_price
+		var total=qty*price;
+		ttotal+=total;
+		tr+="<tr><td><span class='fa fa-trash' onclick=\"remove_from_cart("+i+")\"></span></td><td>"+cart[i].member_name+"</td> <td>"+qty+"</td><td>"+cx(price)+"</td><td>"+cx(total)+"</td></tr>"
+	}
+	adata.ttotal=ttotal;
+	adata.tqty=tno
+	$("#purchase-details").text("Payment for "+tno+" Chicks")
+	$("#purchase-amount").text(cx(ttotal))
+	$("#cart-table").html(tr+"</tbody>")
+	$("#cart-modal").modal("show")
+}
 $(function () {
 	get_defaults()
+
+	var cart=window.localStorage.getItem("cart")
+	if(cart==null||cart=="null")
+		cart=[]
+	else
+		cart=JSON.parse(cart);
+
+	var tno=0
+	for(var i=0;i<cart.length;i++){
+		tno+=Number(cart[i].qty);
+	}
+	if(tno==0)
+		tno=""
+	$("#no-cart").text(tno)
 
 	$(".a-dashboard").click(function () {
 		$(".child-div").hide()
@@ -17,7 +90,6 @@ $(function () {
 
 			load_chicken_status(rst)
 		})
-		
 	})
 	$("#a-new-cs").click(function (argument) {
 		$("#cs-modal").modal("show")
@@ -28,16 +100,27 @@ $(function () {
 		var healthy=$("#cs-healthy").val()
 		var sick=$("#cs-sick").val()
 		var dead=$("#cs-dead").val()
-		var year=$("#cs-year").val()
-		var month=$("#cs-month").val()
-		var week=$("#cs-week").val()
-		var arr=[{fn:"Year",val:year,ft:"sel"},{fn:"Month",val:month,ft:"sel"},{fn:"Week",val:week,ft:"sel"},{fn:"No. of Healthy Chicks",val:healthy},{fn:"No. of Sick Chicks",val:sick},{fn:"No. of Dead Chicks",val:dead}]
+		var sold=$("#cs-sold").val()
+		var healthy_nl=$("#cs-healthy-nl").val()
+		var sick_nl=$("#cs-sick-nl").val()
+		var dead_nl=$("#cs-dead-nl").val()
+		var sold_nl=$("#cs-sold-nl").val()
+		var arr=[
+		{fn:"No. of Healthy, Laying Chicks ",val:healthy},{fn:"No. of Healthy Non-laying Chicks",val:healthy_nl},
+		{fn:"No. of Sick, Laying Chicks",val:sick},{fn:"No. of Sick Non-laying Chicks",val:sick_nl},
+		{fn:"No. of Dead, Laying Chicks",val:dead},{fn:"No. of Dead, Non-laying Chicks",val:dead_nl},
+		{fn:"No. of Sold,Laying Chicks",val:sold},{fn:"No. of Sold,Non-laying Chicks",val:sold_nl}
+		]
+
 		var vr=check_empty(arr)
 		
 		if(!vr)
 			return 0;
 
-		var data={url:"/group",rq:adata.axn,year:year,month:month,week:week,healthy:healthy,sick:sick,dead:dead,member_id:member_id}
+		var data={url:"/group",rq:adata.axn,
+		healthy:healthy,sick:sick,dead:dead,sold:sold,
+		healthy_nl:healthy_nl,sick_nl:sick_nl,dead_nl:dead_nl,sold_nl:sold_nl,
+		member_id:member_id}
 		data.id=adata.id;
 		ajax_go(data,function (rst) {
 			$("#cs-modal").modal("hide")
@@ -103,10 +186,11 @@ $(function () {
 		var vr=check_empty(arr)
 		if(!vr)
 			return 0;
-		if(id_photo.length)
-			data.append("profile_photo",$("#profile-photo")[0].files[0])
 		if(profile_photo.length)
+			data.append("profile_photo",$("#profile-photo")[0].files[0])
+		if(id_photo.length)
 			data.append("id_photo",$("#id-photo")[0].files[0])
+
 		data.append("member_id",adata.member_id)
 		ajax_file(data,data2,function (rst) {
 			if(rst.errmsg){
@@ -146,7 +230,6 @@ $(function () {
 		})
 	})
 	$(".a-add-stock").click(function () {
-		
 		$(".child-div").hide()
 		$("#stock-div").show()
 		$("#new-stock-div").modal("show")
@@ -155,9 +238,20 @@ $(function () {
 	$(".a-add-order").click(function () {
 		
 		$(".child-div").hide()
-		$("#orders-div").show()
+		$("#gp-orders-div").show()
 		$("#new-order-div").modal("show")
 		clear_fields()
+	})
+	$(".a-order-forms").click(function () {
+		$(".child-div").hide()
+		$("#order-forms-div").show()
+		var data={url:"/group",rq:"get-group-orders"}
+
+		ajax_go(data,function (rst) {
+			
+			
+		})
+	
 	})
 	
 	$("#add-stock-btn").click(function () {
@@ -204,9 +298,20 @@ $(function () {
 		})
 
 	})
+	$(".view-cart").click(function(){
+		$("#cart-div").show()
+		$("#cart-div,#check-out-btn").show()
+		$("#cart-checkout,#complete-payment-btn").hide()
+		load_cart()
+
+
+	})
 	$("#add-order-btn").click(function () {
-		var group_id=adata.group_id
-		
+		var cart=window.localStorage.getItem("cart")
+		if(cart==null||cart=="null")
+			cart=[]
+		else
+			cart=JSON.parse(cart)
 		if(adata.me.role=="Chairperson")
 			var member_id=$("#order-member-id").val()
 		else
@@ -216,13 +321,43 @@ $(function () {
 		var vr=check_empty(arr)
 		if(!vr)
 			return 0;
-		var data={group_id:group_id,url:"/group",rq:"add-order",member_id:member_id}
+		var member_name=$("#order-member-id :selected").text()
+
+		cart[cart.length]={member_id:member_id,member_name:member_name,qty:qty}
+		window.localStorage.setItem("cart",JSON.stringify(cart))
+		var tno=0
+		for(var i=0;i<cart.length;i++){
+			tno+=Number(cart[i].qty);
+		}
+		if(tno==0)
+			tno=""
+		$("#no-cart").text(tno)
+		$("#new-order-div").modal("hide")
+		return 0;
 		
-		data.qty=qty;
+	})
+	$("#check-out-btn").click(function () {
+		$("#cart-div,#check-out-btn").hide()
+		$("#cart-checkout,#complete-payment-btn").show()
+		return 0
+	})
+	$("#complete-payment-btn").click(function () {
+		var group_id=adata.group_id
+		var phone=$("#mm-phone").val()
+		var data={group_id:group_id,url:"/group",rq:"add-order",member_id:[],qty:[],price:adata.settings.chicken_price,phone:phone,tamount:adata.ttotal,tqty:adata.tqty}
+		var cart=JSON.parse(window.localStorage.getItem("cart"))
+		for(var i=0;i<cart.length;i++){
+			data.member_id[i]=cart[i].member_id;
+			data.qty[i]=cart[i].qty;
+		}
 		ajax_go(data,function (rst) {
 			$("#new-order-div").modal("hide")
-			display_succ("Order added successfully")
-			var es=rst.orders;
+			display_succ("Order placed successfully")
+			var es=rst.group_orders;
+			$("#cart-modal").modal("hide")
+			$("#no-cart").text("")
+			window.localStorage.removeItem("cart")
+			cart=[]
 			load_orders(es)
 		})
 	})
@@ -264,16 +399,7 @@ $(function () {
 	})
 
 })
-function view_orders() {
-	var group_id=$("#h-group-id").val()
-	var data={group_id:group_id,url:"/group",rq:"view-orders"}
-	ajax_go(data,function (rst) {
-		var orders=rst.orders;
-		$(".child-div").hide()
-		$("#orders-div").show()
-		load_orders(orders)
-	})
-}
+
 function view_egg_stock() {
 	var group_id=$("#h-group-id").val()
 	var data={group_id:group_id,url:"/group",rq:"view-egg-stock"}
@@ -311,9 +437,6 @@ function load_egg_stock(es) {
 			op+="<a class='dropdown-item' href='#' onclick='remove_stock("+id+")'>Delete</a>"
 			op+="</div></div>"
 		}
-		
-		
-		
 		tr+="<tr><td>"+stock_no+"</td><td>"+time_recorded+"</td><td>"+qty+"</td><td>"+amount+"</td><td class='leader-item'>"+member_name+"</td><td>"+status+"</td><td class='leader-item'>"+op+"</td></tr>"
 	}
 	$("#stock-table").html("</tbody>"+tr)
@@ -325,7 +448,7 @@ function load_egg_stock(es) {
 	}
 	
 }
-function load_orders(es) {
+function load_orders_by_order_no(es) {
 	adata.orders=es;
 	if(!es.length)
 	{
@@ -335,7 +458,7 @@ function load_orders(es) {
 	}
 	$("#no-orders").hide()
 	$("#orders-table").show()
-	var tr="<thead><tr><th>Order No</th><th>Recorded on</th><th>Quantity</th><th>Amount</th><th class='leader-item'>Member</th><th>Status</th><th></th></tr></thead><tbody>"
+	var tr="<thead><tr><th>Order No</th><th>Recorded on</th><th>Quantity</th><th>Amount</th><th class='leader-item'>Member</th><th>Status</th><th>Age</th><th></th></tr></thead><tbody>"
 	for(var i=0;i<es.length;i++){
 		var op=""
 		var qty=es[i].qty;
@@ -345,15 +468,57 @@ function load_orders(es) {
 		var amount=cx(es[i].amount);
 		var status=es[i].status;
 		var member_name=es[i].member_name
+		var time_received=es[i].tr
+		var age=es[i].age+es[i].age2
+		months=age/30
+		days=age%30
+
+		if(months>=1)
+		{
+			age=months
+			if(months<=6){
+				if(months==1)
+					months="1 month"
+				else
+					months=months+", months"
+
+				if(days>0)
+					age=months+","+days+" days"
+
+				else
+					age=months
+			}
+			else{
+				age="-"
+			}
+		}
+		else{
+
+			if(age==1)
+				age="1 Day"
+			else
+				age=age+" days"
+		}
+		if(time_received)
+			status="Received"
+		else
+			age="#NA"
 		if(status=="Pending Approval"){
 			op+="<button class='btn btn-primary dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>Options</button>"
 			op+=" <div class='dropdown-menu'>"
-			op+="<a class='dropdown-item' href='#' onclick='edit_orders_dl("+i+")'>Edit</a>"
-			op+="<a class='dropdown-item' href='#' onclick='remove_order("+id+")'>Delete</a>"
+			op+="<a class='dropdown-item' href='#' onclick='remove_order("+id+")'>Cancel order</a>"
 		}
+		else if(status=="Delivered"){
+			op+="<button class='btn btn-primary dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>Options</button>"
+			op+=" <div class='dropdown-menu'>"
+			op+="<a class='dropdown-item' href='#' onclick='receive_order_dl("+id+")'>Receive Order</a>"
+		}
+
 		op+="</div></div>"
-		tr+="<tr><td>"+order_no+"</td><td>"+time_recorded+"</td><td>"+qty+"</td><td>"+amount+"</td><td class='leader-item'>"+member_name+"</td><td>"+status+"</td><td class='leader-item'>"+op+"</td></tr>"
+		tr+="<tr><td>"+order_no+"</td><td>"+time_recorded+"</td><td>"+qty+"</td><td>"+amount+"</td><td class='leader-item'>"+member_name+"</td><td>"+status+"</td><td>"+age+"</td><td class='leader-item'>"+op+"</td></tr>"
+
 	}
+
 	$("#orders-table").html("</tbody>"+tr)
 	if(adata.me.role=="Chairperson"){
 		$(".leader-item").show()
@@ -407,7 +572,24 @@ function remove_order(id) {
 		})
 	}
 }
-
+function receive_order_dl(id) {
+	adata.id=id;
+	$("#receive-order-div").modal("show")
+}
+function receive_order() {
+	var age=$("#r-age").val()
+	var id=adata.id;
+	
+		var group_id=adata.group_id
+		var data={group_id:group_id,id:id,url:"/group",rq:"receive-order",age:age}
+		ajax_go(data,function (rst) {
+			$("#receive-order-div").modal("hide")
+			display_succ("Order marked as received successfully")
+			var es=rst.orders
+			load_orders(es)
+		})
+	
+}
 function get_defaults() {
 	var group_id=$("#h-group-id").val()
 
@@ -421,14 +603,36 @@ function get_defaults() {
 		$("#my-name").text(" "+rst.me.name)
 		adata.me=rst.me
 		$("#db-members-count").text(group_members.length)
+		var clms=[{cn:"Name",fn:"name"},{cn:"Member No.",fn:"member_no"},{cn:"Primary Phone",fn:"phone"},
+			{cn:"Other Phone",fn:"phoneb"},{cn:"Email",fn:"email"},{cn:"Date of Birth",fn:"dob",ft:"date"},
+			{cn:"Registration Date",fn:"reg_date",ft:"date"},{cn:"Gender",fn:"gender"},
+			{cn:"District",fn:"district"},
+			{cn:"County",fn:"county"},
+			{cn:"Subcounty",fn:"subcounty"},{cn:"Parish",fn:"parish"},
+			{cn:"Village",fn:"village"},{cn:"Marital Status",fn:"marital_status"},
+			{cn:"Dependants",fn:"no_of_dependants"},{cn:"Name of Spouse",fn:"name_of_spouse"},
+			{cn:"Disability Status",fn:"disability_status"},
+			{cn:"Education Level",fn:"education_level"},
+			{cn:"Place of Operation",fn:"place_of_operation"},
+			{cn:"Next of Kin",fn:"nok_name"},
+			{cn:"Next of Kin Primary Contact",fn:"nok_primary_phone"},
+			{cn:"Next of Kin Other Phone",fn:"nok_other_phone"}]
+		load_profile(rst.me,clms)
 		var stock_sum=rst.stock_sum;
 		load_stock_sum(stock_sum,role)
 		load_group_members(group_members,1)
 		load_orders_sum(rst.orders_sum)
+		load_cs_sum(rst)
 		load_districts(rst.districts)
+		adata.settings=rst.settings;
 
 	})
 }
+
+function view_profile() {
+	$("#profile-modal").modal("show")
+}
+
 function load_stock_sum(stock_sum) {
 	$("#db-pending-approval").html("0 Eggs <hr>UGX 0")
 	$("#db-paid").html("0 Eggs <hr>UGX 0")
@@ -462,6 +666,35 @@ function load_orders_sum(stock_sum) {
 		if(stock_sum[i].status=="Delivered")
 			$("#db-orders-delivered").html(qty+" Chicks  <hr>UGX "+ amount)
 	}
+}
+function load_cs_sum(rst) {
+	var healthy=rst.cs_sum[0].healthy;
+	var sick=rst.cs_sum[0].sick;
+	var dead=rst.cs_sum[0].dead;
+	var sold=rst.cs_sum[0].sold
+	var healthy_nl=rst.cs_sum[0].healthy_nl;
+	var sick_nl=rst.cs_sum[0].sick_nl;
+	var dead_nl=rst.cs_sum[0].dead_nl;
+	var sold_nl=rst.cs_sum[0].sold_nl
+	if(healthy==null)
+	{
+		healthy=0;
+		sick=0
+		dead=0;
+		sold=0
+		healthy_nl=0;
+		sick_nl=0
+		dead_nl=0;
+		sold_nl=0
+	}
+	var cstatus="Healthy: ["+healthy+"]["+healthy_nl+"]["+(healthy+healthy_nl)+"]"
+	cstatus+="<hr>Sick: ["+sick+"]["+sick_nl+"]["+(sick+sick_nl)+"]"
+	cstatus+="<hr>Dead: ["+dead+"]["+dead_nl+"]["+(dead+dead_nl)+"]"
+	cstatus+="<hr>Sold: ["+sold+"]]"+sold_nl+"]["+(sold+sold_nl)+"]"
+	cstatus2=healthy+sick
+	cstatus2_nl=healthy_nl+sick_nl
+	$("#db-cs").html(cstatus)
+	$("#db-cs-2").html("Laying Chicks: "+cstatus2+"<hr>Non-Laying Chicks:"+cstatus2_nl)
 }
 function change_role_dl(index) {
 	var group_members=adata.group_members
@@ -596,14 +829,19 @@ function load_chicken_status(rst) {
 	}	
 	adata.chicken_status=cs;
 	
-	var tr="<thead><tr><th>#</th><th>Member</th><th>Healthy</th><th>Sick</th><th>Dead</th><th>Period</th><th>Recorded on</th><th></th></tr></thead><tbody>"
+	var tr="<thead><tr><th>#</th><th>Member</th><th>Healthy</th><th>Sick</th><th>Dead</th><th>Sold</th><th>Recorded on</th><th></th></tr></thead><tbody>"
+	
 	for(var i=0;i<cs.length;i++){
 		var member_name=cs[i].member_name
 		var healthy=cs[i].healthy;
 		var sick=cs[i].sick
 		var dead=cs[i].dead;
+		var sold=cs[i].sold;
+		var healthy_nl=cs[i].healthy_nl;
+		var sick_nl=cs[i].sick_nl
+		var dead_nl=cs[i].dead_nl;
+		var sold_nl=cs[i].sold_nl;
 		var time_recorded=cs[i].time_recorded
-		var period="Week "+cs[i].week+", "+cs[i].month+", "+cs[i].year
 		var op=""
 		var id=cs[i].id;
 		var op="<div class='btn-group' >"
@@ -612,7 +850,12 @@ function load_chicken_status(rst) {
 		op+="<a class='dropdown-item' href='#' onclick='edit_cs_dl("+i+")'>Edit</a>"
 		op+="<a class='dropdown-item' href='#' onclick='remove_cs("+id+")'>Delete</a>"
 		op+="</div></div>"
-		tr+="<tr><td>"+(i+1)+"</td><td>"+member_name+"</td><td>"+healthy+"</td><td>"+sick+"</td><td>"+dead+"</td><td>"+period+"</td><td>"+time_recorded+"</td><td>"+op+"</td></tr>"
+		var h="["+healthy+"],["+healthy_nl+"],["+(healthy+healthy_nl)+"]"
+		var s="["+sick+"],["+sick_nl+"],["+(sick+sick_nl)+"]"
+		var d="["+dead+"],["+dead_nl+"],["+(dead+dead_nl)+"]"
+		var sl="["+sold+"],["+sold_nl+"],["+(sold+sold_nl)+"]"
+		tr+="<tr><td>"+(i+1)+"</td><td>"+member_name+"</td><td>"+h+"</td><td>"+s+"</td><td>"+d+"<td>"+sl+"</td></td><td>"+time_recorded+"</td><td>"+op+"</td></tr>"
+		
 	}
 	$("#chicken-status-table").html("</tbody>"+tr)
 	
@@ -623,17 +866,21 @@ function edit_cs_dl(i) {
 	var healthy=cs[i].healthy;
 	var sick=cs[i].sick
 	var dead=cs[i].dead;
+	var sold=cs[i].sold
+	var healthy_nl=cs[i].healthy;
+	var sick_nl=cs[i].sick_nl
+	var dead_nl=cs[i].dead_nl;
+	var sold_nl=cs[i].sold_nl
 	var member_id=cs[i].member_id
-	var year=cs[i].year;
-	var month=cs[i].month;
-	var week=cs[i].week;
 	$("#cs-healthy").val(healthy)
 	$("#cs-sick").val(sick)
 	$("#cs-dead").val(dead)
+	$("#cs-sold").val(sold)
+	$("#cs-healthy-nl").val(healthy_nl)
+	$("#cs-sick-nl").val(sick_nl)
+	$("#cs-dead-nl").val(dead_nl)
+	$("#cs-sold-nl").val(sold_nl)
 	$("#cs-member-id").val(member_id)
-	$("#cs-year").val(year)
-	$("#cs-month").val(month)
-	$("#cs-week").val(week)
 	adata.axn="edit-cs"
 	adata.id=cs[i].id;
 	$("#cs-modal").modal("show")
@@ -646,7 +893,64 @@ function remove_cs(id) {
 		ajax_go(data,function (rst) {
 			display_succ("Status removed successfully")
 			load_chicken_status(rst)
-			
 		})
 	}
 }
+function view_orders() {
+	var group_id=$("#h-group-id").val()
+	var data={group_id:group_id,url:"/group",rq:"view-orders"}
+	ajax_go(data,function (rst) {
+		var orders=rst.group_orders;
+		$(".child-div").hide()
+		$("#gp-orders-div").show()
+
+		load_orders(orders)
+	})
+}
+function load_orders(rst) {
+	var go=rst
+	adata.go=go;
+	var hd=[{cn:"Order No.",fn:"order_no"},{cn:"Qty",fn:"qty"},{cn:"Total",fn:"total",ft:"money"},{cn:"Method",fn:"method"},{cn:"Phone",fn:"phone"},{cn:"Time Ordered",fn:"order_time"},{cn:"Status",fn:"status"},{cn:"Options",ft:"options"}]
+	var options=[{text:"View Details",method:"view_order_breakdown"},{text:"Order Form",method:"view_order_form"}]
+	gen_table(hd,go,"gp-orders-table","no-gp-orders",options)
+}
+function view_order_breakdown(index) {
+	var group_order_no=adata.go[index].order_no;
+	
+	var group_id=$("#h-group-id").val()
+	var data={group_id:group_id,url:"/group",rq:"view-order-breakdown",group_order_no:group_order_no}
+	ajax_go(data,function (rst) {
+		var orders=rst.orders;
+		$(".child-div").hide()
+		$("#orders-div").show()
+		var hd=[{cn:"Order No.",fn:"order_no"},{cn:"Qty",fn:"qty"},{cn:"Amount",fn:"amount",ft:"money"},{cn:"Member",fn:"member_name"},{cn:"Time Ordered",fn:"time_recorded"},{cn:"Status",fn:"status"}]
+		gen_table(hd,orders,"orders-table","no-orders")
+	})
+}
+
+
+function select_order_form_img(){
+	$("#order-form-file").trigger("click")
+}
+function upload_order_form() {
+	var data=new FormData()
+	var form_photo=$("#order-form-file")[0].files
+
+	var arr=[{fn:"Order Form Photo",val:form_photo,ft:"photo"}]
+	var vr=check_empty(arr)
+	if(!vr)
+		return 0
+	form_photo=$("#order-form-file")[0].files[0];
+	data.append("form_photo",form_photo)
+	data.append("rq","upload-order-form")
+	data.append("file_name",adata.gon)
+	var data2={url:"/group"}
+	ajax_file(data,data2,function () {
+		var ts=new Date()
+		$("#order-form-img").attr("src","/uploads/forms/form-"+adata.gon+"?ts="+ts)
+	})
+	
+}
+
+
+

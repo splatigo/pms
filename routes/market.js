@@ -29,13 +29,21 @@ exports.index=function (req,res) {
 		if(ajax){
 			return res.send({errmsg:"Please login to access this portal"})
 		}
-		else
-			return res.redirect("/")
+		else{
+			res.redirect("/")
+			
+		}
 	}
-	if(rq=="create-group"){
-		create_group(data)
+	else{
+		if(req.user.priv=="admin")
+			return res.redirect("/admin")
+		if(req.user.priv=="supplier")
+			return res.redirect("/supplier")
+		if(req.user.priv=="gm")
+			return res.redirect("/group")
 	}
-	else if(rq=="make-purchase"){
+	
+	if(rq=="make-purchase"){
 		make_purchase(data,function () {
 			data.req=0;data.res=0;
 			db.get_instock(data,function () {

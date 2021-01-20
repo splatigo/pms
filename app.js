@@ -56,6 +56,10 @@ var supplier=require("./routes/supplier")
 app.post("/supplier",supplier.index)
 app.get("/supplier",supplier.index)
 app.get("/auth",auth.index)
+app.get("/api/pay",function(req,res){
+  pay_callback(req,res)
+
+})
 app.post('/auth-sign',function(req, res, next) {
       passport.authenticate('user', function(err, user, info) {
               
@@ -105,11 +109,19 @@ passport.use("user",new LocalStrategy(function(username,password,done){
       var priv="admin"
       var type="admins"
     }
+    else if(pref=='FD'){
+      var table="funders"
+      var priv="funder"
+      var type="funders"
+
+    }
     else{
       var priv="customer"
       var type="customers"
       table="customers"
     }
+
+
     connection.query("SELECT *FROM "+table+" WHERE (phone=? OR username=?) AND password=SHA1(?)",[username,username,password],function(err,rst){
             if(err){
               return console.log(err.sqlMessage); 
@@ -138,9 +150,9 @@ passport.serializeUser(function(user, done) {
 });
 passport.deserializeUser(function(key,done){
     var id=key.id
+
   var q="SELECT *FROM "+key.type+" WHERE id=?";
    connection.query(q,[id],function(err,rst){
-    console.log(key.type,rst,err)
    var user=rst[0];
    user.priv=key.priv;
 
@@ -164,35 +176,116 @@ function gen_pass(n) {
    }
    return result;
 }
-app.get("/testmm",function (argument) {
+app.get("/testmm",function (req,res) {
   test_mm(req,res)
   res.end("Done!")
 })
-//test_mm()
-function test_mm(req,res) {
-  var consumerKey="TAjCVCN8tqcGCVmgIdyuGzi9OT1592848007";
-  var consumerSecret="olxejsJMwPrzuk8C5R7VyE5ZHY1592848007"
-
-  var url = "https://vendors.pay-leo.com/api/v2/test/deposit";
-  var msisdn="256785967798"
-  var amount="10000"
-  var merchantCode="36048"
+app.get("/checkmm",function(req,res){
+  check_mm_status(req,res)
+})
+function check_mm_status(req,res) {
+  var phone="256757575431"
   var transactionId=gen_pass(15)
-  var narration="Payment"
-  var data=url+"&"+msisdn+"&"+amount+"&"+merchantCode+"&"+transactionId+"&"+narration;
-  var signature=signHmacSha256(consumerSecret,data)
+  var desc="Payment"
   var parameters={
-    msisdn:msisdn,
-    amount:amount,
-    merchantCode:merchantCode,
-    auth_signature:signature,
-    transactionId:transactionId,
-    consumerKey:consumerKey,
-    narration:narration
+    "phone":"256705687760",
+    "msg":"Testing1",
+    "user":"2341166770"
   }
+  var headers={
+      'Content-Type': 'application/json',
+      'Content-Length': JSON.stringify(parameters).length
+  }
+  post_axios(parameters)
+  res.end("Done!")
+}
+app.get("/checkdetails",function(req,res){
+  check_details(req,res)
+})
+function check_details(req,res) {
+  var transactionId=gen_pass(15)
+  var parameters={
+    "transaction_number": "TP0003686340",
+    "user":"2341166770"
+  }
+  var headers={
+      'Content-Type': 'application/json',
+      'Content-Length': JSON.stringify(parameters).length
+  }
+  post_axios(parameters)
+  res.end("Done!")
+}
 
-  var path="/api/v2/test/deposit/?";
-  var hostname="vendors.pay-leo.com"
+app.get("/verify_phone",function(req,res){
+  verify_phone(req,res)
+})
+function verify_phone(req,res) {
+  var transactionId=gen_pass(15)
+  var parameters={
+    "phone": "256757575431",
+    "user":"2341166770"
+  }
+  var headers={
+      'Content-Type': 'application/json',
+      'Content-Length': JSON.stringify(parameters).length
+  }
+  post_axios(parameters)
+  res.end("Done!")
+}
+
+app.get("/payout",function(req,res){
+  pay_out(req,res)
+})
+function pay_out(req,res) {
+  var transactionId=gen_pass(15)
+  var parameters={
+    "phone": "256757575431",
+    "amount":"500",
+    "user":"2341166770",
+    "msg":"API Testing1",
+    "name":"Simon Latigo",
+    url:"https://api.transpayug.com/v1/poultry/mobileMoneyWithdraw/"
+  }
+  var headers={
+      'Content-Type': 'application/json',
+      'Content-Length': JSON.stringify(parameters).length,
+      'Authorization':'Basic MjM0MTE2Njc3MDpibGVzc2VkMQ=='
+  }
+ 
+  post_axios(parameters,headers)
+  res.end("Done!")
+}
+
+app.get("/check_balance",function(req,res){
+  check_balance(req,res)
+})
+function check_balance(req,res) {
+  var transactionId=gen_pass(15)
+  var parameters={
+    "username":"2341166770",
+    url:"https://api.transpayug.com/v1/poultry/balance/"
+  }
+  var headers={
+      'Content-Type': 'application/json',
+      'Content-Length': JSON.stringify(parameters).length
+  }
+  post_axios(parameters)
+  res.end("Done!")
+}
+
+
+function test_mm(req,res) {
+  var url = "https://vendors.pay-leo.com/api/v2/test/deposit";
+  var phone="256757575431"
+  var amount="500"
+  var transactionId=gen_pass(15)
+  var desc="Payment"
+  var parameters={
+    "phone":"256705687760",
+    "amount":"500",
+    "msg":"Testing1",
+    "user":"2341166770"
+  }
   var headers={
       'Content-Type': 'application/json',
       'Content-Length': JSON.stringify(parameters).length
@@ -200,15 +293,27 @@ function test_mm(req,res) {
   //post_req(parameters,hostname,path,headers)
   post_axios(parameters,res)
 }
-function post_axios(parameters,res) {
+
+function pay_callback(req,res) {
+  //var order_no=req.query.otherData
+  var q="UPDATE chicken_payments SET status='Pending Delivery' WHERE order_no"
+  connection.query(q,[order_no],function (err,rst) {
+    
+  })
+}
+function post_axios(parameters,headers) {
+  //var url="https://api.transpayug.com/v1/poultry/mobileMoneyTopupStatus/"
+  //var url="https://api.transpayug.com/v1/poultry/mobileMoneyTopup/"
+  //var url="https://api.transpayug.com/v1/poultry/transactionDetails/"
+  var url="https://api.transpayug.com/v1/poultry/verifyMobileMoneyPhoneNumber/"
+  if(parameters.url)
+    url=parameters.url;
   const axios = require('axios')
-
   axios
-    .post('https://vendors.pay-leo.com/api/v2/test/deposit/', parameters)
+    .post(url, parameters,{headers:headers})
     .then(res => {
-      console.log(`statusCode: ${res.statusCode}`)
-      console.log(res.data)
-
+      console.log(res.data.data)
+      
     })
     .catch(error => {
       console.error(error)

@@ -107,7 +107,7 @@ function login_user(phone,password) {
 		if(rst.user.status==0){
 			//reset password
 		}
-		if(rst.user.priv=="admin")
+		if(rst.user.priv=="admin"||rst.user.priv=="funder")
 			window.location="/admin"
 
 		else if(rst.user.priv=="gm"){

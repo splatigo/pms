@@ -89,7 +89,6 @@ function get_mygroups(data,callback) {
 	var q="SELECT group_name,group_id FROM group_members,groups WHERE group_members.group_id=groups.id AND userid=?"
 	connection.query(q,[userid],function (err,rst) {
 		data.mygroups=rst;
-		
 		callback()
 	})
 }
@@ -120,10 +119,13 @@ function add_group_member(data,callback) {
 	var district=req.body.district
 	var county=req.body.county
 	var dependants= req.body.dependants
+	if(dependants=="")
+		dependants=0
 	var disability_status=req.body.disability_status
 	var disability_type=req.body.disability_type
 	var dob=req.body.dob;
-
+	if(dob=="-")
+		dob=null
 	var edu_level= req.body.edu_level
 	var gender= req.body.gender
 	var group_id= req.body.group_id
@@ -138,17 +140,23 @@ function add_group_member(data,callback) {
 	var place_of_operation= req.body.place_of_operation
 	var position= req.body.position
 	var role= req.body.role;
+	if(role=="0")
+		role="Member"
 	var spouse= req.body.spouse
 	var subcounty= req.body.subcounty
 	var village= req.body.village
 	var name=req.body.name;
 	var email=req.body.email;
+	if(email=="")
+		email=null
 	var phone=req.body.phone;
+	if(phone=="")
+		phone=null
 	var password=gen_random(6)
 	var member_no=gen_random(6)
 	var reset_code=password
-	var clms="username,member_no,name,password,reset_code,phone,gender,email,phoneb,dob,marital_status,no_of_dependants,name_of_spouse,disability_status,disability_type,district,county,subcounty,parish,village,education_level,souce_of_income,place_of_operation,id_no,nok_name,nok_primary_phone,nok_other_phone,group_id,role"
-	var arr=[member_no,member_no,name,password,reset_code,phone,gender,email,phoneb,dob,marital_status,dependants,spouse,disability_status,disability_type,district,county,subcounty,parish,village,edu_level,income_source,place_of_operation,id_no,nok,nok_phone,nok_phoneb,group_id,role]
+	var clms="username,member_no,name,password,reset_code,phone,gender,phoneb,email,dob,marital_status,no_of_dependants,name_of_spouse,disability_status,disability_type,district,county,subcounty,parish,village,education_level,souce_of_income,place_of_operation,id_no,nok_name,nok_primary_phone,nok_other_phone,group_id,role"
+	var arr=[member_no,member_no,name,password,reset_code,phone,gender,phoneb,email,dob,marital_status,dependants,spouse,disability_status,disability_type,district,county,subcounty,parish,village,edu_level,income_source,place_of_operation,id_no,nok,nok_phone,nok_phoneb,group_id,role]
 	var qr=""
 	for(var i=0;i<arr.length;i++){
 		if(i==3)
@@ -157,14 +165,17 @@ function add_group_member(data,callback) {
 			qr+="?,"
 	}
 	qr=qr.substring(0,qr.length-1)
+
+	
 	var q="INSERT INTO group_members ("+clms+") VALUES ("+qr+")";
-	check_exists(data,phone,email,"group_members",function(){
+
 		connection.query(q,arr,function (err,rst) {
 			if(err){
 				console.log(err.sqlMessage)
 				data.errmsg="An error occurred, please try again"
 				if(err.errno==1062){
 					data.errmsg="Unable to add user, phone or email already in use"
+					return callback()
 				}
 			}
 			var insertId=rst.insertId
@@ -176,18 +187,25 @@ function add_group_member(data,callback) {
 				upload_photo(profile_photo,"profiles","gm-"+insertId)
 				upload_photo(id_photo,"ids","gm-"+insertId,callback)
 			}
+			else
+				callback()
 			
 		})
-	})
+	
+	
 }
 function edit_group_member(data,callback) {
 	var req=data.req;
 	var district=req.body.district
 	var county=req.body.county
 	var dependants= req.body.dependants
+	if(dependants=="")
+		dependants=0
 	var disability_status=req.body.disability_status
 	var disability_type=req.body.disability_type
 	var dob=req.body.dob;
+	if(dob=="-")
+		dob=null
 	var edu_level= req.body.edu_level
 	var gender= req.body.gender
 	var group_id= req.body.group_id
@@ -202,12 +220,19 @@ function edit_group_member(data,callback) {
 	var place_of_operation= req.body.place_of_operation
 	var position= req.body.position
 	var role= req.body.role;
+	if(role=="0")
+		role="Member"
+
 	var spouse= req.body.spouse
 	var subcounty= req.body.subcounty
 	var village= req.body.village
 	var name=req.body.name;
 	var email=req.body.email;
+	if(email=="")
+		email=null
 	var phone=req.body.phone;
+	if(phone=="")
+		phone=null
 	var member_id=req.body.member_id;
 	var clms="name=?,phone=?,gender=?,email=?,phoneb=?,dob=?,marital_status=?,no_of_dependants=?,name_of_spouse=?,disability_status=?,disability_type=?,district=?,county=?,subcounty=?,parish=?,village=?,education_level=?,souce_of_income=?,place_of_operation=?,id_no=?,nok_name=?,nok_primary_phone=?,nok_other_phone=?,role=?"
 	var arr=[name,phone,gender,email,phoneb,dob,marital_status,dependants,spouse,disability_status,disability_type,district,county,subcounty,parish,village,edu_level,income_source,place_of_operation,id_no,nok,nok_phone,nok_phoneb,role,member_id]
@@ -223,8 +248,12 @@ function edit_group_member(data,callback) {
 			}
 		}
 		
+		
 		var profile_photo=0;var id_photo=0;
-
+		if(req.files){
+			var profile_photo=req.files.profile_photo;var id_photo=req.files.id_photo;
+		}
+		
 		if(profile_photo&&id_photo){
 				upload_photo(profile_photo,"profiles","gm-"+member_id)
 				upload_photo(id_photo,"ids","gm-"+member_id,callback)
@@ -262,6 +291,7 @@ function upload_photo(file,type,fn,callback) {
 }
 exports.upload_photo=upload_photo
 function check_exists(data,phone,email,table,callback) {
+	
 	var q="SELECT *FROM "+table+" WHERE phone=?"
 	connection.query(q,[phone],function (err,rst) {
 		if(err)
@@ -339,6 +369,11 @@ exports.get_user=function (username,callback) {
       var table="admins"
       var priv="admin"
       var type="admins"
+    }
+    else if(pref=="FD"){
+      var table="funders"
+      var priv="funder"
+      var type="funders"
     }
     else{
       var priv="customer"
@@ -439,9 +474,11 @@ var gen_random=function (n) {
 }
 exports.gen_random=gen_random
 function get_instock(data,callback) {
+	
 	var q="SELECT SUM(egg_stock.trays) AS stock FROM egg_stock  WHERE status='Pending Payment' OR status='Paid'"
 	connection.query(q,function (err,rst) {
-		
+		if(err)
+			return console.log(err)
 		var allstock=rst[0].stock;
 		if(allstock==null)
 			allstock=0
@@ -460,3 +497,24 @@ function get_instock(data,callback) {
 	})
 }
 exports.get_instock=get_instock;
+
+function post_axios(parameters,callback) {
+	var headers={
+	    'Content-Type': 'application/json',
+	    'Content-Length': JSON.stringify(parameters).length
+	}
+  if(parameters.url)
+    var url=parameters.url;
+  const axios = require('axios')
+  axios
+    .post(url, parameters,{headers:headers})
+    .then(res => {
+      callback()
+      
+    })
+    .catch(error => {
+      console.error(error.errno)
+      callback()
+    })
+}
+exports.post_axios=post_axios;

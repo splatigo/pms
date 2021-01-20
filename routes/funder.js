@@ -37,7 +37,7 @@ exports.index=function (req,res) {
 		else
 			return res.redirect("/")
 	}
-	else if(req.user.priv!="admin"&&req.user.priv!="funder"){
+	else if(req.user.priv!="admin"){
 		if(ajax){
 			return res.send({errmsg:"Account does not have priviledge to access this portal"})
 		}
@@ -61,11 +61,8 @@ exports.index=function (req,res) {
 				get_dashboard_data(data,function () {
 					db.get_settings(data,function () {
 						get_suppliers(data,function () {
-							get_funders(data,function () {
-								data.res=0;data.req=0;
-								res.send(data)
-							})
-							
+							data.res=0;data.req=0;
+							res.send(data)
 						})
 					})
 				})
@@ -113,7 +110,6 @@ exports.index=function (req,res) {
 	}
 	else if(rq=="get-groups"){
 		get_groups(data,function () {
-
 			data.res=0;data.req=0;
 			res.send(data)
 		})
@@ -205,39 +201,6 @@ exports.index=function (req,res) {
 			res.send(data)
 		})
 	}
-	else if(rq=="get-funders"){
-		get_funders(data,function () {
-			data.res=0;data.req=0;
-			res.send(data)
-		})
-	}
-	else if(rq=="create-funder"){
-		create_funder(data,function () {
-			get_funders(data,function () {
-				data.res=0;data.req=0;
-				res.send(data)
-			})
-		})
-		
-	}
-	else if(rq=="edit-funder"){
-		edit_funder(data,function () {
-			get_funders(data,function () {
-				data.res=0;data.req=0;
-				res.send(data)
-			})
-		})
-		
-	}
-	else if(rq=="remove-funder"){
-		remove_funder(data,function () {
-			get_funders(data,function () {
-				data.res=0;data.req=0;
-				res.send(data)
-			})
-		})
-		
-	}
 	else if(rq=="get-orders"){
 		get_orders(data,function () {
 			data.res=0;data.req=0;
@@ -290,87 +253,6 @@ exports.index=function (req,res) {
 	else
 		res.render("admin",data)
 }
-function get_funders(data,callback) {
-
-	var q="SELECT *FROM funders ORDER BY id DESC"
-	var arr=[]
-	var req=data.req;
-	if(req.user.priv=="funder")
-		arr=[req.user.id]
-	connection.query(q,arr,function (err,rst) {
-		if(err)
-			return console.log(err.sqlMessage)
-		data.funders=rst;
-		callback()
-	})
-}
-function create_funder(data,callback) {
-	var res=data.res;
-	var req=data.req;
-	var phone=req.query.funder_phone;
-	var business_name=req.query.funder_name;
-	var created_by=req.user.id;
-	var address=req.query.address
-	var funder_no=db.gen_random(6)
-	var email=req.query.funder_email
-	var name=""
-	var password=db.gen_random(6)
-		var table="funders"
-	db.check_exists(data,phone,email,table,function(){
-		var q="INSERT INTO funders (name,email,phone,password,reset_code,username,funder_no,business_name,created_by) VALUES (?,?,?,SHA1(?),?,?,?,?,?)"
-		connection.query(q,[name,email,phone,password,password,funder_no,funder_no,business_name,created_by],function (err,rst) {
-			if(err){
-				console.log(err.sqlMessage)
-				if(err.errno==1062){
-					data.errmsg="Email or phone already in use"
-					return callback()
-				}
-				return 0;
-			}
-			else
-				callback()
-		})
-	})
-}
-function edit_funder(data,callback) {
-
-	var req=data.req;
-	var phone=req.query.funder_phone;
-	var business_name=req.query.funder_name;
-	var email=req.query.funder_email
-	var funder_id=req.query.funder_id
-
-	var q="UPDATE funders SET email=?,phone=?,business_name=? WHERE id=?"
-	connection.query(q,[email,phone,business_name,funder_id],function (err,rst) {
-		if(err){
-			if(err.errno==1062){
-				data.errmsg="Email or phone already in use"
-				return callback()
-			}
-			return console.log(err.sqlMessage)
-
-		}
-		else{
-			callback()
-		}
-		
-	})
-}
-function remove_funder(data,callback) {
-	var res=data.res;
-	var req=data.req;
-	var id=req.query.id;
-	var q="DELETE FROM funders WHERE id=?"
-	connection.query(q,[id],function (err,rst) {
-		if(err){
-
-			if(err.errno==1451){
-				data.errmsg="Unable to remove item; it's interlinked with other entities. Please contact support"
-			}
-		}
-		callback()
-	})
-}
 function change_order_status(i,data,callback) {
 	var req=data.req;
 	var oid=req.query.oid
@@ -409,12 +291,7 @@ function get_dashboard_data(data,callback) {
 function get_cs(data,callback) {
 	var req=data.req;
 	var q="SELECT SUM(healthy) AS healthy,sum(sick) AS sick, SUM(dead) AS dead,SUM(sold) AS sold,SUM(healthy_nl) AS healthy_nl,sum(sick_nl) AS sick_nl, SUM(dead_nl) AS dead_nl,SUM(sold_nl) AS sold_nl,groups.group_name AS group_name,groups.group_no FROM chicken_status,groups WHERE chicken_status.group_id=groups.id AND latest=1 GROUP BY chicken_status.group_id"
-	var arr=[]
-	if(req.user.priv=="funder"){
-		q="SELECT SUM(healthy) AS healthy,sum(sick) AS sick, SUM(dead) AS dead,SUM(sold) AS sold,SUM(healthy_nl) AS healthy_nl,sum(sick_nl) AS sick_nl, SUM(dead_nl) AS dead_nl,SUM(sold_nl) AS sold_nl,groups.group_name AS group_name,groups.group_no FROM chicken_status,groups WHERE chicken_status.group_id=groups.id AND funder_id=? AND latest=1 GROUP BY chicken_status.group_id"
-		arr=[req.user.id]
-	}
-	connection.query(q,arr,function (err,rst) {
+	connection.query(q,function (err,rst) {
 		if(err)
 			return console.log(err.sqlMessage)
 		data.chicken_status=rst;
@@ -423,14 +300,8 @@ function get_cs(data,callback) {
 }
 function get_cs_sum(data,callback) {
 	var req=data.req;
-	
 	var q="SELECT SUM(healthy) AS healthy,sum(sick) AS sick, SUM(dead) AS dead,SUM(sold) AS sold,SUM(healthy_nl) AS healthy_nl,sum(sick_nl) AS sick_nl, SUM(dead_nl) AS dead_nl,SUM(sold_nl) AS sold_nl FROM chicken_status WHERE latest=1"
-	var arr=[]
-	if(req.user.priv=="funder"){
-		var q="SELECT SUM(healthy) AS healthy,sum(sick) AS sick, SUM(dead) AS dead,SUM(sold) AS sold,SUM(healthy_nl) AS healthy_nl,sum(sick_nl) AS sick_nl, SUM(dead_nl) AS dead_nl,SUM(sold_nl) AS sold_nl FROM chicken_status,group_members,groups WHERE chicken_status.member_id=group_members.id AND group_members.group_id=groups.id AND groups.funder_id=? AND latest=1"
-		arr=[req.user.id]
-	}
-	connection.query(q,arr,function (err,rst) {
+	connection.query(q,function (err,rst) {
 		if(err)
 			return console.log(err.sqlMessage)
 		data.cs_sum=rst;
@@ -440,11 +311,14 @@ function get_cs_sum(data,callback) {
 function get_chicken_stock(data,callback) {
 	var req=data.req;
 	var status=req.query.status
+
 	var q="SELECT stock_no,qty,suppliers.business_name,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS tr,DATEDIFF(now(),time_recorded) AS age,chicken_stock.status FROM chicken_stock,suppliers WHERE chicken_stock.status=? AND suppliers.id=chicken_stock.supplier_id ORDER BY time_recorded DESC"
 	connection.query(q,[status],function (err,rst) {
 		if(err)
 			return console.log(err.sqlMessage)
 		data.chicken_stock=rst;
+
+
 		callback()
 	})
 }
@@ -471,47 +345,20 @@ function get_supply_orders_summary(data,callback) {
 	var req=data.req;
 	var group_id=data.group_id
 	var q="SELECT SUM(price*qty) AS amount,SUM(qty) AS qty,count(*) AS no,status FROM supply_orders GROUP BY status"
-	var arr=[]
-	if(req.user.priv=="funder")
-	{
-		var q="SELECT SUM(price*qty) AS amount,SUM(qty) AS qty,count(*) AS no,status FROM supply_orders,groups WHERE supply_orders.group_id=groups.id AND funder_id=? GROUP BY status"
-
-		arr=[req.user.id]
-	}
-	connection.query(q,arr,function (err,rst) {
+	connection.query(q,[group_id],function (err,rst) {
 		if(err)
 			console.log(err)
-
 		data.supply_orders_sum=rst;
 
 		callback()
 	})
 }
 function get_group_count(data,callback){
-	var req=data.req;
 	var q="SELECT COUNT(*) AS no FROM groups"
-	var arr=[]
-	if(req.user.priv=="funder")
-	{
-		var q="SELECT COUNT(*) AS no FROM groups WHERE funder_id=?"
-		arr=[req.user.id]
-	}
-
-	connection.query(q,arr,function (err,rst) {
-
-		if(err)
-			return console.log(err.sqlMessage)
+	connection.query(q,function (err,rst) {
 		data.group_count=rst[0].no
-		arr=[]
 		q="SELECT COUNT(*) AS no FROM group_members"
-		if(req.user.priv=="funder")
-		{
-			q="SELECT COUNT(*) AS no FROM group_members,groups WHERE group_members.group_id=groups.id AND groups.funder_id=?"
-			arr=[req.user.id]
-
-
-		}
-		connection.query(q,arr,function (err,rst) {
+		connection.query(q,function (err,rst) {
 			data.members_count=rst[0].no
 			q="SELECT COUNT(*) AS no FROM suppliers"
 			connection.query(q,function(err,rst){
@@ -524,19 +371,13 @@ function get_group_count(data,callback){
 }
 function get_stock_summary(data,callback) {
 	var req=data.req;
-
 	var q="SELECT SUM(price*trays) AS amount,SUM(trays) AS trays, status FROM egg_stock GROUP BY status"
-	var arr=[]
-	if(req.user.priv=="funder"){
-		var q="SELECT SUM(price*trays) AS amount,SUM(trays) AS trays, status FROM egg_stock,groups WHERE egg_stock.group_id=groups.id AND groups.funder_id=? GROUP BY status"
-		arr=[req.user.id]
-	}
-	connection.query(q,arr,function (err,rst) {
-
+	connection.query(q,function (err,rst) {
 		data.stock_sum=rst;
 		db.get_instock(data,function () {
 			callback()
 		})
+		
 	})
 }
 function get_orders_summary(data,callback) {
@@ -575,55 +416,15 @@ function get_orders(data,callback) {
 function get_supply_orders(data,callback) {
 	var req=data.req;
 	var status=req.query.status
-	if(status=="Out for Delivery"||status=="Delivered"){
-		var q="SELECT chicken_payments.id,order_no,group_name,group_no,qty,amount,phone,method,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded,suppliers.business_name AS supplier FROM chicken_payments,groups,suppliers WHERE chicken_payments.group_id=groups.id AND chicken_payments.status=? AND chicken_payments.supplier_id=suppliers.id ORDER BY time_recorded DESC"
-			var arr=[status]
-			if(req.user.priv=="funder"){
-				q="SELECT chicken_payments.id,order_no,group_name,group_no,qty,amount,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded,suppliers.business_name AS supplier FROM chicken_payments,groups,suppliers WHERE  chicken_payments.group_id=groups.id AND chicken_payments.status=? AND chicken_payments.supplier_id=suppliers.id AND groups.funder_id=? ORDER BY time_recorded DESC"
-				arr=[status,req.user.id]
-			}
-	}
-	else
-	{
-
-		var q="SELECT chicken_payments.id,order_no,group_name,group_no,qty,amount,phone,method,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded FROM chicken_payments,groups WHERE chicken_payments.group_id=groups.id AND chicken_payments.status=? ORDER BY time_recorded DESC"
-		var arr=[status]
-		if(req.user.priv=="funder"){
-			q="SELECT chicken_payments.id,order_no,group_name,group_no,amount,phone,method,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded FROM chicken_payments,groups WHERE chicken_payments.group_id=groups.id AND chicken_payments.status=? AND funder_id=? ORDER BY time_recorded DESC"
-			arr=[status,req.user.id]
-		}
-	}
-	connection.query(q,arr,function (err,rst) {
-		if(err)
-			console.log(err.sqlMessage)
-		data.orders=rst;
-		callback()
-	})
-}
-function get_supply_orders_breakdown(data,callback) {
-	var req=data.req;
-	var status=req.query.status
 	
-	
-	if(status=="Out for Delivery"||status=="Delivered"){
+	//var q="SELECT supply_orders.id,order_no,group_name,group_no,group_members.name AS member_name,qty,(qty*price) AS amount,DATE_FORMAT(time_recorded,'%e %b %Y %l:%i %p') AS order_time,time_recorded,suppliers.name FROM supply_orders INNER JOIN group_members  ON supply_orders.member_id=group_members.id INNER JOIN groups ON supply_orders.group_id=groups.id AND supply_orders.status='Out for Delivery' LEFT JOIN suppliers ON suppliers.id=supply_orders.supplier_id ORDER BY time_recorded DESC"
+	if(status=="Out for Delivery"||status=="Delivered")
 		var q="SELECT supply_orders.id,order_no,group_name,group_no,group_members.name AS member_name,qty,(qty*price) AS amount,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded,suppliers.business_name AS supplier FROM supply_orders,group_members,groups,suppliers WHERE supply_orders.member_id=group_members.id AND supply_orders.group_id=groups.id AND supply_orders.status=? AND supply_orders.supplier_id=suppliers.id ORDER BY time_recorded DESC"
-			var arr=[status]
-			if(req.user.priv=="funder"){
-				q="SELECT supply_orders.id,order_no,group_name,group_no,group_members.name AS member_name,qty,(qty*price) AS amount,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded,suppliers.business_name AS supplier FROM supply_orders,group_members,groups,suppliers WHERE supply_orders.member_id=group_members.id AND supply_orders.group_id=groups.id AND supply_orders.status=? AND supply_orders.supplier_id=suppliers.id AND groups.funder_id=? ORDER BY time_recorded DESC"
-				arr=[status,req.user.id]
-			}
-	}
 	else
 	{
-
 		var q="SELECT supply_orders.id,order_no,group_name,group_no,name AS member_name,qty,(qty*price) AS amount,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded FROM supply_orders,group_members,groups WHERE supply_orders.member_id=group_members.id AND supply_orders.group_id=groups.id AND supply_orders.status=? ORDER BY time_recorded DESC"
-		var arr=[status]
-		if(req.user.priv=="funder"){
-			q="SELECT supply_orders.id,order_no,group_name,group_no,name AS member_name,qty,(qty*price) AS amount,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded FROM supply_orders,group_members,groups WHERE supply_orders.member_id=group_members.id AND supply_orders.group_id=groups.id AND supply_orders.status=? AND funder_id=? ORDER BY time_recorded DESC"
-			arr=[status,req.user.id]
-		}
 	}
-	connection.query(q,arr,function (err,rst) {
+	connection.query(q,[status],function (err,rst) {
 		if(err)
 			console.log(err.sqlMessage)
 		
@@ -659,14 +460,7 @@ function get_stock(data,callback) {
 	var req=data.req;
 	var status=req.query.status
 	var q="SELECT egg_stock.id,stock_no,group_name,trays,egg_stock.price *trays AS amount,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS posted_on,CONCAT(district,', ',subcounty) AS location FROM egg_stock,groups WHERE egg_stock.group_id=groups.id AND egg_stock.status=? ORDER BY time_recorded DESC"
-	var arr=[status]
-	if(req.user.priv=="funder")
-	{
-		q="SELECT egg_stock.id,stock_no,group_name,trays,egg_stock.price *trays AS amount,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS posted_on,CONCAT(district,', ',subcounty) AS location FROM egg_stock,groups WHERE egg_stock.group_id=groups.id AND egg_stock.status=? AND funder_id=? ORDER BY time_recorded DESC"
-		arr=[status,req.user.id]
-
-	}
-	connection.query(q,arr,function (err,rst) {
+	connection.query(q,[status],function (err,rst) {
 		if(err)
 			console.log(err.sqlMessage)
 		data.stock=rst;
@@ -677,7 +471,7 @@ function set_egg_price(data,callback) {
 	var req=data.req;
 	var price=req.query.price;
 	var field=req.query.field
-	
+	console.log(field)
 	var q="UPDATE settings SET ??=?"
 	connection.query(q,[field,price],function (err) {
 		if(err)
@@ -715,12 +509,9 @@ function create_group(data,callback) {
 	var village=req.body.village
 	var group_no=db.gen_random(6)
 	var meeting_day=req.body.meeting_day
-	var funder_id=req.body.funder_id
-	var q="INSERT INTO groups (funder_id,group_no,group_name,district,county,subcounty,parish,village,meeting_place,meeting_day,created_by) VALUES (?,?,?,?,?,?,?,?,?,?,?)"
-	connection.query(q,[funder_id,group_no,group_name,district,county,subcounty,parish,village,meeting_place,meeting_day,created_by],function (err,rst) {
-		if(err)
-			return console.log(err.sqlMessage)
 
+	var q="INSERT INTO groups (group_no,group_name,district,county,subcounty,parish,village,meeting_place,meeting_day,created_by) VALUES (?,?,?,?,?,?,?,?,?,?)"
+	connection.query(q,[group_no,group_name,district,county,subcounty,parish,village,meeting_place,meeting_day,created_by],function (err,rst) {
 		var group_id=rst.insertId;
 		var cert_photo=0;
 		if(req.files){
@@ -747,9 +538,9 @@ function edit_group(data,callback) {
 	var group_no=db.gen_random(6)
 	var meeting_day=req.body.meeting_day
 	var group_id=req.body.group_id
-	var funder_id=req.body.funder_id
-	var q="UPDATE groups SET funder_id=?,group_name=?,district=?,county=?,subcounty=?,parish=?,village=?,meeting_place=?,meeting_day=? WHERE id=?"
-	connection.query(q,[funder_id,group_name,district,county,subcounty,parish,village,meeting_place,meeting_day,group_id],function (err,rst) {
+
+	var q="UPDATE groups SET group_name=?,district=?,county=?,subcounty=?,parish=?,village=?,meeting_place=?,meeting_day=? WHERE id=?"
+	connection.query(q,[group_name,district,county,subcounty,parish,village,meeting_place,meeting_day,group_id],function (err,rst) {
 		if(err)
 			console.log(err.sqlMessage)
 		var cert_photo=0;
@@ -782,53 +573,33 @@ function remove_group(data,callback) {
 function get_groups(data,callback) {
 
 	var req=data.req;
-	var q="SELECT groups.*,business_name FROM groups LEFT JOIN funders ON groups.funder_id=funders.id  ORDER BY time_created DESC"
+	var q="SELECT *FROM groups ORDER BY time_created DESC"
 	var arr=[]
-	if(req.user.priv=="funder"){
-		var q="SELECT groups.*,business_name FROM groups,funders WHERE groups.funder_id=funders.id AND funder_id=? ORDER BY time_created DESC"
-		var arr=[req.user.id]
-	}
 	var filter=req.query.filter;
 	if(filter){
 		if(filter=="district"){
-			q="SELECT groups.*,business_name FROM groups LEFT JOIN funders ON groups.funder_id=funders.id AND groups.district=? ORDER BY time_created DESC"
+			q="SELECT *FROM groups  WHERE district=? ORDER BY time_created DESC"
 			arr=[req.query.district]
-			if(req.user.priv=="funder"){
-				q="SELECT  groups.*,business_name FROM groups,funders  WHERE groups.funder_id=funders.id AND groups.district=? AND funder_id=? ORDER BY time_created DESC"
-				arr=[req.query.district,req.user.id]
-			}
-
 
 		}
 		if(filter=="no"){
-			q="SELECT groups.*,business_name FROM groups LEFT JOIN funders  ON groups.funder_id=funders.id AND group_no=? ORDER BY time_created DESC"
+			q="SELECT *FROM groups  WHERE group_no=? ORDER BY time_created DESC"
 			arr=[req.query.group_no]
-			if(req.user.priv=="funder"){
-				q="SELECT  groups.*,business_name FROM groups,funders  WHERE groups.funder_id=funders.id AND group_no=? AND funder_id=? ORDER BY time_created DESC"
-				arr=[req.query.group_no,req.user.id]
-			}
 		}
 		if(filter=="name")
 		{
-			q="SELECT groups.*,business_name FROM groups LEFT JOIN funders ON groups.funder_id=funders.id AND group_name LIKE '%"+req.query.group_name+"%' ORDER BY time_created DESC"
-
-			if(req.user.priv=="funder"){
-				q="SELECT groups.*,business_name FROM groups,funders  WHERE groups.funder_id=funders.id AND group_name LIKE '%"+req.query.group_name+"%' AND funder_id=? ORDER BY time_created DESC"
-				arr=[req.user.id]
-			}
+			q="SELECT *FROM groups  WHERE group_name LIKE '%"+req.query.group_name+"%' ORDER BY time_created DESC"
 			
 		}
 		
 	}
 	connection.query(q,arr,function (err,rst) {
 		data.groups=rst;
-
 		if(err)
 			console.log(err.sqlMessage)
 		callback()
 	})
 }
-
 function create_supplier(data,callback) {
 	var res=data.res;
 	var req=data.req;
@@ -925,16 +696,6 @@ function get_suppliers(data,callback) {
 		if(err)
 			console.log(err)
 		data.suppliers=rst;
-		
-		callback()
-	})
-}
-function get_orgs(data,callback) {
-	var q="SELECT funders.id,funder_no,reset_code,created_by,name AS org_name,phone,phoneb,email,status FROM funders ORDER BY time_created DESC"
-	connection.query(q,function (err,rst) {
-		if(err)
-			console.log(err)
-		data.funders=rst;
 		
 		callback()
 	})

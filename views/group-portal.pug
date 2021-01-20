@@ -4,48 +4,48 @@ block append head
 block content
     input(id="h-group-id" value=group_id type="hidden")
     div(class="header")
-        nav(class="navbar navbar-expand-lg navbar-dark bg-custom")
-            a(class="navbar-brand a-dashboard" href="#")
-                img(src="/img/icon.PNG" class='logo')
-                span(style="padding-left:5px") Transpay PMS
-            button(class="navbar-toggler" type="button" data-toggle="collapse" data-target="#nav-content" aria-controls="nav-content" aria-expanded="false" aria-label="Toggle navigation")
-                span(class="navbar-toggler-icon")
-            div(class="collapse navbar-collapse" id="nav-content")
-                ul(class="navbar-nav mr-auto")
+        nav(class="bg-custom")    
+            table(style="width:100%;")
                     
-                    li(class="nav-item")
-                        a(class="nav-link view-stock collapse-navbar" href="#")
-                            span(class="fa fa-th")
-                            span  View Stock
-                    li(class="nav-item")
-                        a(class="nav-link view-orders" href="#") 
-                            span(class="fa fa-viacoin") 
-                            span  Supplies
-                    li(class="nav-item")
-                        a(class="nav-link a-members collapse-navbar" href="#") 
-                            span(class="fa fa-group") 
-                            span  Members
-                    li(class="nav-item")
-                        a(class="nav-link a-get-chicken-status collapse-navbar" href="#") 
-                            span(class="fa fa-paw") 
-                            span  Chicken Status
-                    li(class="nav-item hd" id="li-admin")
-                        a(class="nav-link" href="/admin")
-
-                            span(class="fa fa-linux")
-                            span  Admin Portal
-                ul(class="navbar-nav ml-auto")
-                    li(class="nav-item dropdown")
-                        a(class="nav-link dropdown-toggle" href="#" id="a-user-options" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false")
-                            span(class="fa fa-user")
-                            span(id="my-name")
-                        div(class="dropdown-menu" aria-labelledby="a-user-options" id="user-options")
-                            a(href="#" class="dropdown-item") <i class='fa fa-user-o'></i> Profile
-                            a(href="#" class="dropdown-item confirm-axn" axn='signout') <i class='fa fa-sign-out'></i> Signout
-
-                          
+                    tr
+                        td(class="menu-item a-dashboard")
+                            img(src="/img/icon.PNG" class='logo')
+                            span(style="padding-left:5px" id="site-name") Transpay PMS
+                        td(class="view-stock" class="menu-item")
+                            span(class="fa fa-bitbucket menu-icon")
+                            br(class="menu-br")
+                            span(class="menu-text")  Eggs
                     
-
+                        td(class="view-orders" class="menu-item") 
+                            span(class="fa fa-viacoin menu-icon") 
+                            br(class="menu-br")
+                            span(class="menu-text")  Chicken
+                    
+                        td(class="a-members menu-item") 
+                            span(class="fa fa-group menu-icon")
+                            br(class="menu-br") 
+                            span(class="menu-text")  Members
+                        td(class="menu-item a-get-chicken-status") 
+                            span(class="fa fa-paw menu-icon")
+                            br(class="menu-br")
+                            span(class="menu-text")  Status
+                        td(class="menu-item view-cart" style="text-align:right;")
+                            div(style="padding-right:10px")
+                                span(class="fa fa-shopping-cart menu-icon")
+                                span(class="badge badge-danger" id="no-cart")
+                                br(class="menu-br") 
+                                span(class="menu-text")  Cart
+                        td(class="menu-item menu" style="text-align:right;"  )
+                            div(style="padding-right:10px" class="dropdown")
+                                span(class="" id="menu" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false")
+                                    span(class="fa fa-dedent menu-icon")
+                                    br(class="menu-br") 
+                                    span(class="menu-text")  Settings
+                                div(class="dropdown-menu dropdown-menu-right" aria-labelledby="menu")
+                
+                                    a(class="dropdown-item" href="#" onclick="view_profile()") <i class='fa fa-user'></i> Profile
+                                    a(href="#" class="dropdown-item" onclick="reset_password_dl()") <i class='fa fa-key'></i> Reset Password
+                                    a(class="dropdown-item confirm-axn" href="#" axn='signout') <i class='fa fa-sign-out'></i> Signout
     div(class="container")
         br
         div(class="child-div" id="dashboard")
@@ -68,9 +68,29 @@ block content
                             div(class="card")
                                 div(class="card-header bg-custom text-white")
                                     p(align="center")
+                                        span(class="fa fa-paw")
+                                    
+                                        span  Chicken Status
+                                div(class="card-body cb-link a-get-chicken-status")
+                                    p(align='center' style="font-size:15px;")
+                                        span(id="db-cs")
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center")
+                                        span(class="fa fa-hourglass-2")
+                                    
+                                        span  Laying Non-Laying
+                                div(class="card-body cb-link a-get-chicken-status")
+                                    p(align='center' style="font-size:15px;")
+                                        span(id="db-cs-2")
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center")
                                             span(class="fa fa-thumbs-o-up")
                                        
-                                            span  Paid Stock
+                                            span  Paid Eggs Stock
                                 div(class="card-body")
                                     p(align='center' style="font-size:15px;d")
                                         span(id="db-paid")
@@ -82,7 +102,7 @@ block content
                                     p(align="center")
                                         span(class="fa fa-hourglass-1")
                                    
-                                        span  Stock Pending Approval
+                                        span  Eggs Stock Pending Approval
                                 div(class="card-body")
                                     p(align='center' style="font-size:15px;")
                                          
@@ -94,21 +114,22 @@ block content
                                     p(align="center")
                                         span(class="fa fa-hourglass-2")
                                     
-                                        span  Stock Pending Payment
+                                        span  Eggs Stock Pending Payment
                                 div(class="card-body")
                                     p(align='center' style="font-size:15px;")
                                         span(id="db-pending-payment")
+                        
                         div(class="col mb-3")
                             div(class="card")
                                 div(class="card-header bg-custom text-white")
-                                    p(align="center") <i class="fa fa-steam-square"></i> Supplies for Approval
+                                    p(align="center") <i class="fa fa-steam-square"></i> Chicken Orders for Approval
                                 div(class="card-body")
                                     p(align='center' style="font-size:15px;")
                                         span(id="db-orders-pending-approval")
                         div(class="col mb-3")
                             div(class="card")
                                 div(class="card-header bg-custom text-white")
-                                    p(align="center") <i class="fa fa-steam-square"></i> Supplies Pending Delivery
+                                    p(align="center") <i class="fa fa-steam-square"></i> Chicken Orders Pending Delivery
 
                                 div(class="card-body")
                                     p(align='center' style="font-size:15px;")
@@ -116,14 +137,14 @@ block content
                         div(class="col mb-3")
                             div(class="card")
                                 div(class="card-header bg-custom text-white")
-                                    p(align="center") <i class="fa fa-steam-square"></i> Supplies Out for Delivery
+                                    p(align="center") <i class="fa fa-steam-square"></i> Chicken Orders Out for Delivery
                                 div(class="card-body")
                                     p(align='center' style="font-size:15px;")
                                         span(id="db-orders-out-for-delivery")
                         div(class="col mb-3")
                             div(class="card")
                                 div(class="card-header bg-custom text-white")
-                                    p(align="center") <i class="fa fa-steam-square"></i> Supplies Delivered
+                                    p(align="center") <i class="fa fa-steam-square"></i> Chicken Orders Delivered
                                 div(class="card-body")
                                     p(align='center' style="font-size:15px;")
                                         span(id="db-orders-delivered")
@@ -143,17 +164,16 @@ block content
             table
                 tr
                     td
-                        button(class="btn btn-primary a-add-stock") <i class="fa fa-plus"></i> New Stock
-                    
+                        button(class="btn btn-primary a-add-stock") <i class="fa fa-plus"></i> New Eggs Stock
             p
                
             div(class="card card-prmary")
-                div(class="card-header bg-custom text-white") Stock
+                div(class="card-header bg-custom text-white") Eggs Stock
 
                 div(class="card-body")
                     div(class="table-responsive")
                         table(id="stock-table" class="table")
-                    p(id="no-stock" class="alert alert-info hd") No stock has been added yet
+                    p(id="no-stock" class="alert alert-info hd") No eggs stock has been added yet
         div(class="hd  child-div" id="chicken-status-div")
 
             button(class="btn btn-primary leader-item" id="a-new-cs") <i class="fa fa-plus"></i> New Status Record
@@ -161,8 +181,9 @@ block content
             div(class="card card-prmary")
                 div(class="card-header bg-custom text-white") Chicken Status
                 div(class="card-body")
+                    p(style="font-size:10px") * [Laying],[Non-Laying], [Total]
                     div(class="table-responsive")
-                        table(id="chicken-status-table" class="table")
+                        table(id="chicken-status-table" class="table table-striped")
                     p(id="no-chicken-status" class="alert alert-info hd") No status added
         div(class="modal fade" tabindex="-1" aria-labelledby="cs-modal" aria-hidden="true" id="cs-modal")
             div(class="modal-dialog" )
@@ -174,34 +195,41 @@ block content
                     div(class="modal-body")
                         form
                             div(class="form-group row")
-                                label(class="col-sm-4 col-form-label") Year
+                                label(class="col-sm-4 col-form-label") No. of Healthy
                                 div(class="col-sm-8")
-                                    select(class="form-control cs-year" id="cs-year")
+                                    table(class="100p")
+                                        tr
+                                            td
+                                                input(type="number" class="form-control" id="cs-healthy" placeholder="L")
+                                            td
+                                                input(type="number" class="form-control" id="cs-healthy-nl" placeholder="NL")
                             div(class="form-group row")
-                                label(class="col-sm-4 col-form-label") Month
+                                label(class="col-sm-4 col-form-label") No. of Sick
                                 div(class="col-sm-8")
-                                    select(class="form-control cs-month" id="cs-month")
+                                     table(class="100p")
+                                        tr
+                                            td
+                                                input(type="number" class="form-control" id="cs-sick" placeholder="L")
+                                            td
+                                                input(type="number" class="form-control" id="cs-sick-nl" placeholder="NL")
                             div(class="form-group row")
-                                label(class="col-sm-4 col-form-label") Week
+                                label(class="col-sm-4 col-form-label") No. of Dead
                                 div(class="col-sm-8")
-                                    select(class="form-control" id="cs-week")
-                                        option(value="0")
-                                        option(value="1") Week 1
-                                        option(value="2") Week 2
-                                        option(value="3") Week 3
-                                        option(value="4") Week 4
+                                    table(class="100p")
+                                        tr
+                                            td
+                                                input(type="number" class="form-control" id="cs-dead" placeholder="L")
+                                            td
+                                                input(type="number" class="form-control" id="cs-dead-nl" placeholder="NL")
                             div(class="form-group row")
-                                label(class="col-sm-4 col-form-label") Healthy
+                                label(class="col-sm-4 col-form-label") No. Sold off
                                 div(class="col-sm-8")
-                                    input(type="number" class="form-control" id="cs-healthy" placeholder="Healthy")
-                            div(class="form-group row")
-                                label(class="col-sm-4 col-form-label") Sick
-                                div(class="col-sm-8")
-                                    input(type="number" class="form-control" id="cs-sick" placeholder="Sick")
-                            div(class="form-group row")
-                                label(class="col-sm-4 col-form-label") Dead
-                                div(class="col-sm-8")
-                                    input(type="number" class="form-control" id="cs-dead" placeholder="Dead")
+                                    table(class="100p")
+                                        tr
+                                            td
+                                                input(type="number" class="form-control" id="cs-sold" placeholder="L" )
+                                            td
+                                                input(type="number" class="form-control" id="cs-sold-nl" placeholder="NL" value="0" readonly)
                             div(class="form-group row")
                                 label(class="col-sm-4 col-form-label leader-item") Member
                                 div(class="col-sm-8")
@@ -210,28 +238,57 @@ block content
                                 label(class="col-sm-4 col-form-label")
                                 div(class="col-sm-8")
                                     button(type="button" class="btn btn-primary form-control" id="save-cs") Save Record
-        div(class="hd child-div" id="orders-div")
+        div(class="hd child-div" id="gp-orders-div")
             table
                 tr
                     td
-                        button(class="btn btn-primary a-add-order") <i class="fa fa-plus"></i> New Order
+                        button(class="btn btn-primary a-add-order leader-item") <i class="fa fa-plus"></i> New Chicken Order
+            
                     
             p
                
             div(class="card card-prmary")
-                div(class="card-header bg-custom text-white") Orders
+                div(class="card-header bg-custom text-white") Chicken Orders
 
                 div(class="card-body")
                     div(class="table-responsive")
+                        table(id="gp-orders-table" class="table")
+                    p(id="no-gp-orders" class="alert alert-info hd") No orders
+        div(class="hd child-div" id="orders-div")
+            div(class="card card-prmary")
+                div(class="card-header bg-custom text-white") Chicken Orders Breakdown
+                div(class="card-body")
+                    button(class="btn btn-primary" onclick="back('gp-orders-div')")
+                        span(class="fa fa-arrow-circle-left") 
+                        span  Back
+                    br
+                    div(class="table-responsive")
                         table(id="orders-table" class="table")
-                    p(id="no-orders" class="alert alert-info hd") No orders have been made yet
-
-
+                    p(id="no-orders" class="alert alert-info hd") No chicken orders have been made yet
+        div(class="modal fade" tabindex="-1" aria-labelledby="order-form-modal" aria-hidden="true" id="order-form-modal")
+            div(class="modal-dialog" )
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h5(class="modal-title") 
+                        button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                    div(class="modal-body")
+                        p(align="center")
+                            button(class="btn btn-primary" onclick="select_order_form_img()")
+                                span(class="fa fa-photo") 
+                                span  Upload Order Form
+                            div(class="hd")
+                                input(type="file" id="order-form-file"  onchange="upload_order_form()")
+                        div(style="text-align:center;width:100%")
+                            img(class="hd" style="max-width:100%" id="order-form-img" onerror="order_form_load('error')" onload="order_form_load()")
+                        div(class="hd" id="no-form-div" style="text-align:center")
+                            span(class="fa fa-photo")
+                            p No Order Form Uploaded
         div(class="modal fade" tabindex="-1" aria-labelledby="new-stock-div" aria-hidden="true" id="new-stock-div")
             div(class="modal-dialog" )
                 div(class="modal-content")
                     div(class="modal-header")
-                        h5(class="modal-title") New Stock
+                        h5(class="modal-title") New Eggs Stock
                         button(type="button" class="close" data-dismiss="modal" aria-label="Close")
                             span(aria-hidden="true") &times;
                     div(class="modal-body")
@@ -249,12 +306,12 @@ block content
                             div(class="form-group row")
                                 label(class="col-sm-4 col-form-label")
                                 div(class="col-sm-8")
-                                    button(type="button" class="btn btn-primary form-control" id="add-stock-btn") Add Stock
+                                    button(type="button" class="btn btn-primary form-control" id="add-stock-btn") Add Eggs Stock
         div(class="modal fade" tabindex="-1" aria-labelledby="new-order-div" aria-hidden="true" id="new-order-div")
             div(class="modal-dialog" )
                 div(class="modal-content")
                     div(class="modal-header")
-                        h5(class="modal-title") New Supply Order
+                        h5(class="modal-title") New Chicken Order
                         button(type="button" class="close" data-dismiss="modal" aria-label="Close")
                             span(aria-hidden="true") &times;
                     div(class="modal-body")
@@ -270,9 +327,39 @@ block content
                             div(class="form-group row")
                                 label(class="col-sm-4 col-form-label")
                                 div(class="col-sm-8")
-                                    button(type="button" class="btn btn-primary form-control" id="add-order-btn") Place order
-        
-        
+                                    button(type="button" class="btn btn-primary form-control" id="add-order-btn") Add to Cart
+        div(class="modal fade" tabindex="-1" aria-labelledby="cart-modal" aria-hidden="true" id="cart-modal")
+            div(class="modal-dialog modal-lg modal-dialog-scrollable" )
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h5(class="modal-title") Chicken Orders Cart
+                        button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                    div(class="modal-body")
+                        div(id="cart-div")
+                            div(class="table-responsive")
+                           
+                                table(id="cart-table" class="table")
+                            div(id="empty-cart-div" style="text-align:center" class="hd")
+                                span(class="fa fa-shopping-cart")
+                                br
+                                p Cart is Empty
+                        div(id="cart-checkout" class="hd")
+                            div(style="text-align:center")
+                                p(class="bld") Purchase Details
+                                p(id="purchase-details")
+                                p(class="bld") Total Amount
+                                p(id="purchase-amount")
+                            form
+                                div(class="form-group row")
+                                    label(class="col-sm-4 col-form-label") Mobile Number
+                                    div(class="col-sm-8")
+                                        input(type="text" class="form-control" id="mm-phone" placeholder="Phone")
+
+
+                    div(class="modal-footer" id='cart-footer')
+                        button(class="btn btn-primary" id="check-out-btn") Checkout
+                        button(class="btn btn-primary hd" id="complete-payment-btn") Complete Payment
         div(class="modal fade" tabindex="-1" aria-labelledby="add-new-member-div" aria-hidden="true" id="add-new-member-div" data-backdrop="static")
             div(class="modal-dialog modal-lg modal-dialog-scrollable" )
                 div(class="modal-content")
@@ -461,7 +548,7 @@ block content
             div(class="modal-dialog" )
                 div(class="modal-content")
                     div(class="modal-header")
-                        h5(class="modal-title") Edit Stock
+                        h5(class="modal-title") Edit Eggs Stock
                         button(type="button" class="close" data-dismiss="modal" aria-label="Close")
                             span(aria-hidden="true") &times;
                     div(class="modal-body")
@@ -478,7 +565,7 @@ block content
             div(class="modal-dialog" )
                 div(class="modal-content")
                     div(class="modal-header")
-                        h5(class="modal-title") Edit Order Item
+                        h5(class="modal-title") Edit Chicken Order
                         button(type="button" class="close" data-dismiss="modal" aria-label="Close")
                             span(aria-hidden="true") &times;
                     div(class="modal-body")
@@ -491,6 +578,24 @@ block content
                                 label(class="col-sm-4 col-form-label")
                                 div(class="col-sm-8")
                                     button(type="button" class="btn btn-primary form-control" id="edit-order-btn") Update
+        div(class="modal fade" tabindex="-1" aria-labelledby="receive-order-div" aria-hidden="true" id="receive-order-div")
+            div(class="modal-dialog" )
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h5(class="modal-title") Confirm Receipt
+                        button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                    div(class="modal-body")
+                       form
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Age in Days
+                                div(class="col-sm-8")
+                                    input(type="number" class="form-control" id="r-age" placeholder="Quantity")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label")
+                                div(class="col-sm-8")
+                                    button(type="button" class="btn btn-primary form-control" onclick="receive_order()") Confirm Receipt
+        
 
 
 

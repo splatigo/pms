@@ -1,0 +1,1 @@
+ALTER TABLE `groups` CHANGE `funder` `funder_id` INT(11) NULL DEFAULT NULL;
