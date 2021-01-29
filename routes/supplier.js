@@ -46,6 +46,7 @@ exports.index=function (req,res) {
 		}
 	}
 	data.user=req.user;
+	res.cookie("user",req.user,{maxAge: 15*60*1000})
 	data.me=req.user
 
 	if(rq=="get-defaults"){
@@ -56,8 +57,14 @@ exports.index=function (req,res) {
 			})
 		})
 	}
-	else if(rq=="get-supply-orders"){
-		get_supply_orders(data,function () {
+	else if(rq=="get-chicken-orders"){
+		get_chicken_orders(data,function () {
+			data.res=0;data.req=0;
+			res.send(data)
+		})
+	}
+	else if(rq=="get-chicken-order-bd"){
+		get_chicken_order_bd(data,function () {
 			data.res=0;data.req=0;
 			res.send(data)
 		})
@@ -126,44 +133,62 @@ function change_supply_orders_status(i,data,callback) {
 	var supplier_id=req.user.id
 	if(supplier_id){
 		supplier_id=supplier_id
-		var q="UPDATE supply_orders SET status=?,supplier_id=? WHERE id=?"
+		var q="UPDATE chicken_payments SET status=?,supplier_id=? WHERE id=?"
 		var arr=[status,supplier_id,id]
 	}
 	else{
-		var q="UPDATE supply_orders SET status=? WHERE id=?"
+		var q="UPDATE chicken_payments SET status=? WHERE id=?"
 		var arr=[status,id]
 	}
 	connection.query(q,arr,function (err,rst) {
 		if(err)
 			console.log(err)
+		var q="INSERT INTO supply_order_status (order_id,status) VALUES (?,?)"
+		connection.query(q,[id,status])
 		change_supply_orders_status(++i,data,callback)
 	})
 }
 function get_supply_orders_summary(data,callback) {
 	var req=data.req;
 	var supplier_id=req.user.id;
-	var q="SELECT SUM(price*qty) AS amount,SUM(qty) AS qty,count(*) AS no,status FROM supply_orders WHERE supplier_id=? GROUP BY status"
+	var q="SELECT SUM(amount) AS amount,SUM(qty) AS qty,count(*) AS no,status FROM chicken_payments WHERE supplier_id=? GROUP BY status"
 	connection.query(q,[supplier_id],function (err,rst) {
 		if(err)
 			console.log(err)
 		data.supply_orders_sum=rst;
+
 		callback()
 	})
 }
 
-function get_supply_orders(data,callback) {
+function get_chicken_orders(data,callback) {
 	var req=data.req;
 	var status=req.query.status
 	var supplier_id=req.user.id;
-	var q="SELECT supply_orders.id,order_no,group_name,group_no,name AS member_name,group_members.phone AS member_phone, qty,(qty*price) AS amount,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded FROM supply_orders,group_members,groups WHERE supply_orders.member_id=group_members.id AND supply_orders.group_id=groups.id AND supply_orders.status=? AND supplier_id=? ORDER BY time_recorded DESC"
-	connection.query(q,[status,supplier_id],function (err,rst) {
+
+	var q="SELECT chicken_payments.id,order_no,group_name,group_no,groups.id AS group_id,qty,amount,phone,method,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded,status FROM chicken_payments,groups WHERE chicken_payments.group_id=groups.id AND chicken_payments.status=? AND supplier_id=? ORDER BY time_recorded DESC"
+	var arr=[status,supplier_id]
+	connection.query(q,arr,function (err,rst) {
 		if(err)
 			console.log(err.sqlMessage)
 		data.orders=rst;
+
 		callback()
 	})
 }
-
+function get_chicken_order_bd(data,callback) {
+	var req=data.req;
+	var group_id=req.query.group_id
+	var group_order_no=req.query.group_order_no
+	var q="SELECT supply_orders.id,order_no,supply_orders.status,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS time_recorded,time_recorded AS ordered_on,qty,(price*qty) AS amount,name AS member_name,DATE_FORMAT(time_received,'%e %b %Y %l:%i %p') AS tr,age,DATEDIFF(DATE_ADD(now(),INTERVAL 8 HOUR),time_received) AS age2  FROM supply_orders,group_members WHERE group_members.group_id=? AND group_members.id=supply_orders.member_id AND group_order_no=? ORDER BY ordered_on DESC"
+		var arr=[group_id,group_order_no]
+	connection.query(q,arr,function (err,rst) {
+		if(err)
+			return console.log(err.sqlMessage)
+		data.orders_bd=rst;
+		callback()
+	})
+}
 function get_stock(data,callback) {
 	var req=data.req;
 	var supplier_id=req.user.id

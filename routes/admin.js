@@ -32,7 +32,7 @@ exports.index=function (req,res) {
 		req.user=req.cookies.user;
 	if(!req.user){
 		if(ajax){
-			return res.send({errmsg:"Please login to access this portal"})
+			return res.send({errmsg:"Your Session expired",et:"session-expired"})
 		}
 		else
 			return res.redirect("/")
@@ -52,6 +52,7 @@ exports.index=function (req,res) {
 		}
 	}
 	data.user=req.user;
+	res.cookie("user",req.user,{maxAge: 15*60*1000})
 	data.me=req.user
 	
 	if(rq=="get-defaults"){
@@ -250,10 +251,15 @@ exports.index=function (req,res) {
 			res.send(data)
 		})
 	}
+	else if(rq=="get-chicken-order-breakdown"){
+		get_supply_orders_breakdown(data,function () {
+			data.res=0;data.req=0;
+			res.send(data)
+		})
+	}
 	else if(rq=="get-stock"){
 		get_stock(data,function () {
 			data.res=0;data.req=0;
-
 			res.send(data)
 		})
 	}
@@ -385,6 +391,8 @@ function change_order_status(i,data,callback) {
 	connection.query(q,[status,id],function (err,rst) {
 		if(err)
 			console.log(err)
+		var q="INSERT INTO egg_orders_status (order_id,status) VALUES (?,?)"
+		connection.query(q,[id,status])
 		change_order_status(++i,data,callback)
 	})
 }
@@ -470,11 +478,11 @@ function get_chicken_stock_sum(data,callback) {
 function get_supply_orders_summary(data,callback) {
 	var req=data.req;
 	var group_id=data.group_id
-	var q="SELECT SUM(price*qty) AS amount,SUM(qty) AS qty,count(*) AS no,status FROM supply_orders GROUP BY status"
+	var q="SELECT SUM(amount) AS amount,SUM(qty) AS qty,COUNT(*) AS no,status FROM chicken_payments GROUP BY status"
 	var arr=[]
 	if(req.user.priv=="funder")
 	{
-		var q="SELECT SUM(price*qty) AS amount,SUM(qty) AS qty,count(*) AS no,status FROM supply_orders,groups WHERE supply_orders.group_id=groups.id AND funder_id=? GROUP BY status"
+		var q="SELECT SUM(amount) AS amount,SUM(qty) AS qty,COUNT(*) AS no,status FROM chicken_payments,groups WHERE supply_orders.group_id=groups.id AND funder_id=? GROUP BY status"
 
 		arr=[req.user.id]
 	}
@@ -555,14 +563,36 @@ function change_stock_status(i,data,callback) {
 		return callback()
 	var req=data.req;
 	var status=req.query.status;
-	var id=oid[i]
+	var id=oid[i].id;
 	var q="UPDATE egg_stock SET status=? WHERE id=?"
+
 	connection.query(q,[status,id],function (err,rst) {
+		
 		if(err)
 			console.log(err)
+		
+		var status=req.query.status
+	
+		q="INSERT INTO egg_stock_status(order_id,status) VALUES(?,?)"
+		connection.query(q,[id,status])
+		if(status=="Paid")
+		{
+			var account_no=oid[i].acc;
+			var amount=oid[i].amount
+			var stock_no=oid[i].stock_no
+			var type="Credit"
+			var description="Credit for Eggs Stock, Stock No: "+stock_no
+			var status="Completed"
+			var trans_id=db.gen_random(15)
+			var wd=[account_no,amount,type,description,status,trans_id]
+			db.update_wallet(wd)
+		}
+		
 		change_stock_status(++i,data,callback)
+		
 	})
 }
+
 function get_orders(data,callback) {
 	var req=data.req;
 	var status=req.query.status
@@ -576,20 +606,20 @@ function get_supply_orders(data,callback) {
 	var req=data.req;
 	var status=req.query.status
 	if(status=="Out for Delivery"||status=="Delivered"){
-		var q="SELECT chicken_payments.id,order_no,group_name,group_no,qty,amount,phone,method,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded,suppliers.business_name AS supplier FROM chicken_payments,groups,suppliers WHERE chicken_payments.group_id=groups.id AND chicken_payments.status=? AND chicken_payments.supplier_id=suppliers.id ORDER BY time_recorded DESC"
+		var q="SELECT chicken_payments.id,order_no,no,message,group_name,groups.id AS group_id,group_no,qty,amount,chicken_payments.phone,method,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded,suppliers.business_name AS supplier,chicken_payments.status FROM chicken_payments,groups,suppliers WHERE chicken_payments.group_id=groups.id AND chicken_payments.status=? AND chicken_payments.supplier_id=suppliers.id ORDER BY time_recorded DESC"
 			var arr=[status]
 			if(req.user.priv=="funder"){
-				q="SELECT chicken_payments.id,order_no,group_name,group_no,qty,amount,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded,suppliers.business_name AS supplier FROM chicken_payments,groups,suppliers WHERE  chicken_payments.group_id=groups.id AND chicken_payments.status=? AND chicken_payments.supplier_id=suppliers.id AND groups.funder_id=? ORDER BY time_recorded DESC"
+				q="SELECT chicken_payments.id,order_no,no,message,group_name,group_no,groups.id AS group_id,qty,amount,chicken_payments.phone,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded,suppliers.business_name AS supplier,chicken_payments.status FROM chicken_payments,groups,suppliers WHERE  chicken_payments.group_id=groups.id AND chicken_payments.status=? AND chicken_payments.supplier_id=suppliers.id AND groups.funder_id=? ORDER BY time_recorded DESC"
 				arr=[status,req.user.id]
 			}
 	}
 	else
 	{
 
-		var q="SELECT chicken_payments.id,order_no,group_name,group_no,qty,amount,phone,method,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded FROM chicken_payments,groups WHERE chicken_payments.group_id=groups.id AND chicken_payments.status=? ORDER BY time_recorded DESC"
+		var q="SELECT chicken_payments.id,order_no,no,message,group_name,group_no,groups.id AS group_id,qty,amount,phone,method,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded,status FROM chicken_payments,groups WHERE chicken_payments.group_id=groups.id AND chicken_payments.status=? ORDER BY time_recorded DESC"
 		var arr=[status]
 		if(req.user.priv=="funder"){
-			q="SELECT chicken_payments.id,order_no,group_name,group_no,amount,phone,method,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded FROM chicken_payments,groups WHERE chicken_payments.group_id=groups.id AND chicken_payments.status=? AND funder_id=? ORDER BY time_recorded DESC"
+			q="SELECT chicken_payments.id,order_no,no,message,group_name,group_no,groups.id AS group_id,amount,phone,method,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded,status FROM chicken_payments,groups WHERE chicken_payments.group_id=groups.id AND chicken_payments.status=? AND funder_id=? ORDER BY time_recorded DESC"
 			arr=[status,req.user.id]
 		}
 	}
@@ -602,32 +632,14 @@ function get_supply_orders(data,callback) {
 }
 function get_supply_orders_breakdown(data,callback) {
 	var req=data.req;
-	var status=req.query.status
-	
-	
-	if(status=="Out for Delivery"||status=="Delivered"){
-		var q="SELECT supply_orders.id,order_no,group_name,group_no,group_members.name AS member_name,qty,(qty*price) AS amount,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded,suppliers.business_name AS supplier FROM supply_orders,group_members,groups,suppliers WHERE supply_orders.member_id=group_members.id AND supply_orders.group_id=groups.id AND supply_orders.status=? AND supply_orders.supplier_id=suppliers.id ORDER BY time_recorded DESC"
-			var arr=[status]
-			if(req.user.priv=="funder"){
-				q="SELECT supply_orders.id,order_no,group_name,group_no,group_members.name AS member_name,qty,(qty*price) AS amount,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded,suppliers.business_name AS supplier FROM supply_orders,group_members,groups,suppliers WHERE supply_orders.member_id=group_members.id AND supply_orders.group_id=groups.id AND supply_orders.status=? AND supply_orders.supplier_id=suppliers.id AND groups.funder_id=? ORDER BY time_recorded DESC"
-				arr=[status,req.user.id]
-			}
-	}
-	else
-	{
-
-		var q="SELECT supply_orders.id,order_no,group_name,group_no,name AS member_name,qty,(qty*price) AS amount,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded FROM supply_orders,group_members,groups WHERE supply_orders.member_id=group_members.id AND supply_orders.group_id=groups.id AND supply_orders.status=? ORDER BY time_recorded DESC"
-		var arr=[status]
-		if(req.user.priv=="funder"){
-			q="SELECT supply_orders.id,order_no,group_name,group_no,name AS member_name,qty,(qty*price) AS amount,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded FROM supply_orders,group_members,groups WHERE supply_orders.member_id=group_members.id AND supply_orders.group_id=groups.id AND supply_orders.status=? AND funder_id=? ORDER BY time_recorded DESC"
-			arr=[status,req.user.id]
-		}
-	}
+	var group_id=req.query.group_id
+	var group_order_no=req.query.group_order_no
+	var q="SELECT supply_orders.id,order_no,supply_orders.status,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS time_recorded,time_recorded AS ordered_on,qty,(price*qty) AS amount,name AS member_name,DATE_FORMAT(time_received,'%e %b %Y %l:%i %p') AS tr,age,DATEDIFF(DATE_ADD(now(),INTERVAL 8 HOUR),time_received) AS age2  FROM supply_orders,group_members WHERE group_members.group_id=? AND group_members.id=supply_orders.member_id AND group_order_no=? ORDER BY ordered_on DESC"
+		var arr=[group_id,group_order_no]
 	connection.query(q,arr,function (err,rst) {
 		if(err)
-			console.log(err.sqlMessage)
-		
-		data.orders=rst;
+			return console.log(err.sqlMessage)
+		data.orders_bd=rst;
 		callback()
 	})
 }
@@ -640,29 +652,24 @@ function change_supply_orders_status(i,data,callback) {
 	var status=req.query.status;
 	var id=oid[i]
 	var supplier_id=req.query.supplier_id;
-	if(supplier_id){
-		supplier_id=supplier_id
-		var q="UPDATE supply_orders SET status=?,supplier_id=? WHERE id=?"
-		var arr=[status,supplier_id,id]
-	}
-	else{
-		var q="UPDATE supply_orders SET status=? WHERE id=?"
-		var arr=[status,id]
-	}
-	connection.query(q,arr,function (err,rst) {
-		if(err)
-			console.log(err)
+	var order_no=id;
+	var phone=""
+	var message=status
+	var method=""
+	
+	db.update_payment_status(order_no,status,phone,message,method,supplier_id,function(){
 		change_supply_orders_status(++i,data,callback)
 	})
+
 }
 function get_stock(data,callback) {
 	var req=data.req;
 	var status=req.query.status
-	var q="SELECT egg_stock.id,stock_no,group_name,trays,egg_stock.price *trays AS amount,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS posted_on,CONCAT(district,', ',subcounty) AS location FROM egg_stock,groups WHERE egg_stock.group_id=groups.id AND egg_stock.status=? ORDER BY time_recorded DESC"
+	var q="SELECT egg_stock.id,stock_no,group_name,trays,egg_stock.price *trays AS amount,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS posted_on,group_members.name AS member_name,member_no FROM egg_stock,groups,group_members WHERE egg_stock.group_id=groups.id AND group_members.id=egg_stock.member_id AND egg_stock.status=? ORDER BY time_recorded DESC"
 	var arr=[status]
 	if(req.user.priv=="funder")
 	{
-		q="SELECT egg_stock.id,stock_no,group_name,trays,egg_stock.price *trays AS amount,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS posted_on,CONCAT(district,', ',subcounty) AS location FROM egg_stock,groups WHERE egg_stock.group_id=groups.id AND egg_stock.status=? AND funder_id=? ORDER BY time_recorded DESC"
+		q="SELECT egg_stock.id,stock_no,group_name,trays,egg_stock.price *trays AS amount,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS posted_on,group_members.name AS member_name,member_no FROM egg_stock,groups WHERE egg_stock.group_id=groups.id AND group_members.id=egg_stock.member_id AND egg_stock.status=? AND funder_id=? ORDER BY time_recorded DESC"
 		arr=[status,req.user.id]
 
 	}
@@ -670,6 +677,7 @@ function get_stock(data,callback) {
 		if(err)
 			console.log(err.sqlMessage)
 		data.stock=rst;
+		
 		callback()
 	})
 }

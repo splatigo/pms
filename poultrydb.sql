@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Jan 20, 2021 at 05:40 PM
+-- Generation Time: Jan 29, 2021 at 05:54 PM
 -- Server version: 5.7.31
 -- PHP Version: 7.3.21
 
@@ -66,6 +66,7 @@ DROP TABLE IF EXISTS `chicken_payments`;
 CREATE TABLE IF NOT EXISTS `chicken_payments` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `group_id` int(11) NOT NULL,
+  `member_id` int(11) NOT NULL,
   `order_no` varchar(255) NOT NULL,
   `qty` int(11) NOT NULL,
   `amount` int(11) NOT NULL,
@@ -76,25 +77,31 @@ CREATE TABLE IF NOT EXISTS `chicken_payments` (
   `supplier_id` int(11) DEFAULT NULL,
   `time_received` datetime DEFAULT NULL,
   `age` int(11) DEFAULT NULL,
+  `no` int(11) NOT NULL,
+  `message` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
-  KEY `order_id` (`order_no`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=latin1;
+  KEY `order_id` (`order_no`),
+  KEY `member_id` (`member_id`),
+  KEY `group_id` (`group_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=151 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `chicken_payments`
 --
 
-INSERT INTO `chicken_payments` (`id`, `group_id`, `order_no`, `qty`, `amount`, `time_recorded`, `method`, `phone`, `status`, `supplier_id`, `time_received`, `age`) VALUES
-(5, 46, '2226218133', 6, 66000, '2021-01-16 18:59:56', 'Mobile Money', '', 'Pending Approval', 0, NULL, 0),
-(6, 46, '5816672953', 143, 1573000, '2021-01-16 19:07:47', 'Mobile Money', '', 'Pending Approval', 0, NULL, 0),
-(7, 46, '4473828586', 76, 836000, '2021-01-17 12:42:37', 'Mobile Money', '', 'Pending Approval', 0, NULL, 0),
-(8, 46, '5823385187', 80, 880000, '2021-01-17 12:44:35', 'Mobile Money', '', 'Pending Approval', 0, NULL, 0),
-(9, 46, '1954684649', 121, 1331000, '2021-01-17 13:59:29', 'Mobile Money', '', 'Pending Approval', 0, NULL, 0),
-(10, 46, '1185784481', 76, 836000, '2021-01-17 14:04:04', 'Mobile Money', '', 'Pending Approval', 0, NULL, 0),
-(11, 46, '1654544641', 66, 726000, '2021-01-17 14:05:20', 'Mobile Money', '', 'Pending Approval', 0, NULL, 0),
-(12, 46, '4153577348', 76, 836000, '2021-01-17 14:20:56', 'Mobile Money', '0785967798', 'Pending Approval', 0, NULL, 0),
-(13, 46, '1172219714', 65, 715000, '2021-01-17 15:16:40', 'Mobile Money', '0757575431', 'Pending Approval', 0, NULL, 0),
-(14, 46, '6489315455', 76, 836000, '2021-01-20 16:07:45', 'Mobile Money', '0785967798', 'Pending Approval', NULL, NULL, NULL);
+INSERT INTO `chicken_payments` (`id`, `group_id`, `member_id`, `order_no`, `qty`, `amount`, `time_recorded`, `method`, `phone`, `status`, `supplier_id`, `time_received`, `age`, `no`, `message`) VALUES
+(139, 46, 16, '5154869474', 7, 3500, '2021-01-27 08:13:04', 'Wallet', '', 'Out for Delivery', 8, NULL, NULL, 1, 'Out for Delivery'),
+(140, 46, 16, '7975632521', 95, 47500, '2021-01-27 08:43:58', 'Wallet', '', 'Out for Delivery', 8, NULL, NULL, 2, 'Out for Delivery'),
+(141, 46, 16, '8473219954', 8, 4000, '2021-01-29 14:26:20', 'Wallet', '', 'Pending Delivery', NULL, NULL, NULL, 1, 'Payment Completed'),
+(142, 46, 16, '1944431273', 5, 2500, '2021-01-29 15:51:58', 'Wallet', '', 'Failed', NULL, NULL, NULL, 1, 'Your wallet balance is less than payment amount'),
+(143, 46, 16, '8715176237', 6, 3000, '2021-01-29 15:52:46', 'Wallet', '', 'Failed', NULL, NULL, NULL, 1, 'Wallet balance is less than payment amount'),
+(144, 46, 16, '8368395853', 5, 2500, '2021-01-29 19:47:22', 'Wallet', '', 'Failed', NULL, NULL, NULL, 1, 'Wallet balance is less than payment amount'),
+(145, 46, 16, '5659995268', 5, 2500, '2021-01-29 19:48:56', 'Mobile Money', '0785967798', 'Failed', NULL, NULL, NULL, 1, 'Approval not made from phone'),
+(146, 46, 16, '5639419816', 87, 43500, '2021-01-29 20:13:10', 'Wallet', '', 'Failed', NULL, NULL, NULL, 1, 'Wallet balance is less than payment amount'),
+(147, 46, 16, '2258655967', 87, 43500, '2021-01-29 20:17:58', 'Mobile Money', '0785967798', 'Failed', NULL, NULL, NULL, 1, 'Approval not made from phone'),
+(148, 46, 16, '7541564274', 9, 4500, '2021-01-29 20:22:24', 'Mobile Money', '0785967798', 'Failed', NULL, NULL, NULL, 1, 'Unable to process mobile money payment'),
+(149, 46, 16, '1717199493', 78, 39000, '2021-01-29 20:38:56', 'Mobile Money', '0785967798', 'Failed', NULL, NULL, NULL, 1, 'Unable to process mobile money payment'),
+(150, 46, 16, '1491252313', 8, 4000, '2021-01-29 20:40:20', 'Mobile Money', '0785967798', 'Failed', NULL, NULL, NULL, 1, 'Approval not made from phone');
 
 -- --------------------------------------------------------
 
@@ -120,19 +127,15 @@ CREATE TABLE IF NOT EXISTS `chicken_status` (
   PRIMARY KEY (`id`),
   KEY `group_id` (`group_id`),
   KEY `member_id` (`member_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=40 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `chicken_status`
 --
 
 INSERT INTO `chicken_status` (`id`, `group_id`, `member_id`, `healthy`, `sick`, `dead`, `sold`, `healthy_nl`, `sick_nl`, `dead_nl`, `sold_nl`, `latest`, `time_recorded`) VALUES
-(4, 42, 13, 50, 32, 12, 0, 0, 0, 0, 0, 0, '2020-12-11 08:30:16'),
-(6, 42, 14, 5, 5, 5, 0, 0, 0, 0, 0, 0, '2020-12-11 14:21:23'),
-(7, 42, 12, 10, 30, 10, 0, 0, 0, 0, 0, 1, '2020-12-11 14:22:09'),
-(11, 42, 14, 7, 6, 23, 15, 7, 5, 9, 0, 1, '2020-12-15 08:56:47'),
-(38, 42, 15, 6, 6, 6, 7, 6, 6, 7, 0, 1, '2020-12-17 09:44:52'),
-(39, 46, 16, 6, 9, 6, 8, 7, 6, 8, 0, 1, '2020-12-21 12:04:18');
+(40, 46, 29, 53, 7, 4, 5, 5, 6, 5, 0, 1, '2021-01-29 12:21:49'),
+(41, 46, 21, 53, 7, 4, 5, 5, 6, 5, 0, 1, '2021-01-29 12:21:56');
 
 -- --------------------------------------------------------
 
@@ -27081,6 +27084,7 @@ CREATE TABLE IF NOT EXISTS `egg_orders` (
 DROP TABLE IF EXISTS `egg_orders_status`;
 CREATE TABLE IF NOT EXISTS `egg_orders_status` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `order_id` int(11) NOT NULL,
   `status` varchar(255) NOT NULL,
   `status_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
@@ -27124,26 +27128,70 @@ CREATE TABLE IF NOT EXISTS `egg_stock` (
   KEY `group_id` (`group_id`),
   KEY `member_id` (`member_id`),
   KEY `member_id_2` (`member_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=61 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `egg_stock`
 --
 
 INSERT INTO `egg_stock` (`id`, `stock_no`, `group_id`, `member_id`, `trays`, `price`, `status`, `time_recorded`) VALUES
-(41, '5258173135', 36, 7, 3, 400, 'Paid', '2020-12-07 05:46:57'),
-(42, '3846125771', 36, 5, 6, 400, 'Paid', '2020-12-07 06:00:56'),
-(43, '6635797732', 36, 6, 13, 400, 'Paid', '2020-12-07 06:23:50'),
-(44, '3658576235', 36, 6, 9, 400, 'Paid', '2020-12-07 06:55:19'),
-(45, '1885221867', 42, 13, 76, 400, 'Pending Approval', '2020-12-11 09:07:58'),
-(47, '5654273198', 42, 14, 5, 400, 'Pending Approval', '2020-12-17 17:42:01'),
-(48, '6427728935', 42, 14, 76, 400, 'Pending Approval', '2020-12-17 18:24:09'),
-(49, '7143433815', 42, 13, 6, 400, 'Pending Approval', '2020-12-17 18:27:08'),
-(50, '2559646893', 42, 12, 76, 400, 'Pending Approval', '2020-12-17 18:28:34'),
-(51, '4499819454', 42, 15, 78, 400, 'Pending Approval', '2020-12-17 18:29:31'),
-(52, '6677', 29, 45, 56, 15000, 'Paid', '2020-12-17 18:31:19'),
+(41, '5258173135', 36, 7, 3, 400, 'Pending Payment', '2020-12-07 05:46:57'),
+(42, '3846125771', 36, 5, 6, 400, 'Pending Payment', '2020-12-07 06:00:56'),
+(43, '6635797732', 36, 6, 13, 400, 'Pending Payment', '2020-12-07 06:23:50'),
+(44, '3658576235', 36, 6, 9, 400, 'Pending Payment', '2020-12-07 06:55:19'),
+(45, '1885221867', 42, 13, 76, 400, 'Paid', '2020-12-11 09:07:58'),
+(47, '5654273198', 42, 14, 5, 400, 'Paid', '2020-12-17 17:42:01'),
+(48, '6427728935', 42, 14, 76, 400, 'Paid', '2020-12-17 18:24:09'),
+(49, '7143433815', 42, 13, 6, 400, 'Paid', '2020-12-17 18:27:08'),
+(50, '2559646893', 42, 12, 76, 400, 'Paid', '2020-12-17 18:28:34'),
+(51, '4499819454', 42, 15, 78, 400, 'Paid', '2020-12-17 18:29:31'),
+(52, '6677', 29, 45, 56, 15000, 'Pending Payment', '2020-12-17 18:31:19'),
 (53, '2652659434', 46, 16, 65, 400, 'Paid', '2020-12-21 11:29:41'),
-(54, '8562288218', 46, 16, 100, 400, 'Paid', '2020-12-21 11:29:56');
+(54, '8562288218', 46, 16, 100, 400, 'Paid', '2020-12-21 11:29:56'),
+(55, '1285546744', 46, 24, 67, 400, 'Paid', '2021-01-22 19:39:12'),
+(57, '8616615159', 46, 27, 78, 400, 'Paid', '2021-01-23 15:24:27'),
+(58, '4883172827', 46, 29, 54, 400, 'Paid', '2021-01-23 18:35:45'),
+(59, '4688646476', 46, 16, 68, 400, 'Paid', '2021-01-23 19:10:12');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `egg_stock_status`
+--
+
+DROP TABLE IF EXISTS `egg_stock_status`;
+CREATE TABLE IF NOT EXISTS `egg_stock_status` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `order_id` int(11) NOT NULL,
+  `status` varchar(255) NOT NULL,
+  `status_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=20 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `egg_stock_status`
+--
+
+INSERT INTO `egg_stock_status` (`id`, `order_id`, `status`, `status_time`) VALUES
+(1, 55, 'Paid', '2021-01-22 21:12:30'),
+(2, 54, 'Paid', '2021-01-22 21:12:30'),
+(3, 53, 'Paid', '2021-01-22 21:12:30'),
+(4, 51, 'Paid', '2021-01-22 21:14:25'),
+(5, 50, 'Paid', '2021-01-22 21:14:25'),
+(6, 57, 'Pending Approval', '2021-01-23 15:24:27'),
+(7, 58, 'Pending Approval', '2021-01-23 18:35:45'),
+(8, 58, 'Paid', '2021-01-23 18:43:20'),
+(9, 58, 'Paid', '2021-01-23 18:43:42'),
+(10, 49, 'Paid', '2021-01-23 18:43:53'),
+(11, 57, 'Pending Payment', '2021-01-23 19:09:13'),
+(12, 57, 'Paid', '2021-01-23 19:09:20'),
+(13, 48, 'Paid', '2021-01-23 19:09:20'),
+(14, 47, 'Paid', '2021-01-23 19:09:20'),
+(15, 45, 'Paid', '2021-01-23 19:09:20'),
+(16, 59, 'Pending Approval', '2021-01-23 19:10:12'),
+(17, 59, 'Pending Payment', '2021-01-23 19:10:40'),
+(18, 59, 'Paid', '2021-01-23 19:10:43'),
+(19, 60, 'Pending Approval', '2021-01-29 17:30:34');
 
 -- --------------------------------------------------------
 
@@ -27298,14 +27346,14 @@ INSERT INTO `group_members` (`id`, `username`, `name`, `member_no`, `group_id`, 
 (14, '283388', 'Kato James', '283388', 42, '861f72c7fbdc5cdc60ef20d73e6d73c784cfb97e', '0756585686', '2020-12-10 14:42:04', '247684', '2020-12-10 14:42:04', 'Male', 'Chairperson', 1, 'kj@y.com', '', '2006-03-13', 'Married', 6, '67', 'No Disabled', '0', 'KIBOGA', 'KIBOGA  EAST COUNTY', 'DDWANIRO', 'KALOKOLA', 'Vix', 'Other', 'Xi', 'Work', '8576', 'Kulima', '0785967784', ''),
 (15, '174348', 'Ogwal Thomas', '174348', 42, '9c3f2c9148a8e85aa23f363a5b46997a42b8c5ea', '0701063454', '2020-12-11 12:50:00', '986983', '2020-12-11 12:50:00', 'Male', 'Member', 0, 's@d.com', '0701067454', '2008-02-19', 'Married', 4, '6', 'No Disabled', '0', 'KISORO', 'BUFUMBIRA COUNTY EAST', 'BUKIMBIRI', 'KAGUNGA', '7', 'None', '6', '7', '7', '67', '0701067454', '0701067454'),
 (16, '631752', 'Krui', '631752', 46, '8b49dbcb398e721d7974c7864e8a6ba725afe72b', '0786432123', '2020-12-21 10:18:08', '194759', '2020-12-21 10:18:08', 'Male', 'Chairperson', 0, 'k@gkd.com', '', '2006-02-13', 'Married', 5, '8676', 'No Disabled', '0', 'KAPCHORWA', 'TINGEY COUNTY', 'KAPCHESOMBE', 'KAPCHESOMBE', 'rir', 'Primary Level Certificate', 'eureu', 'irur', '9ritr', 'd848', '0785656565', ''),
-(17, '835417', 'Okelol', '835417', 46, '6f519abe159ec890896e62f36cc53f9622a3c797', '0785967798', '2021-01-07 14:56:25', '934791', '2021-01-07 14:56:25', NULL, '0', 0, '', '', NULL, '0', NULL, '', '0', '0', 'null', 'null', 'null', 'null', '', '0', '', '', '', '', '', ''),
+(17, '835417', 'Okelol', '835417', 46, '6f519abe159ec890896e62f36cc53f9622a3c797', '0785967798', '2021-01-07 14:56:25', '934791', '2021-01-07 14:56:25', NULL, 'Member', 0, '', '', NULL, '0', NULL, '', '0', '0', 'null', 'null', 'null', 'null', '', '0', '', '', '', '', '', ''),
 (21, '325722', 'Okelol', '325722', 46, 'e904fb9c92ec821728ab6a9d275d7afcb9bc7f79', '0785967797', '2021-01-07 15:00:56', '795744', '2021-01-07 15:00:56', NULL, '0', 0, NULL, '', NULL, '0', 0, '', '0', '0', 'null', 'null', 'null', 'null', '', '0', '', '', '', '', '', ''),
 (24, '319784', 'Kingo', '319784', 46, '55999f11280af43e895b3a1c904548ab3208c81e', '0785967789', '2021-01-07 15:17:02', '895145', '2021-01-07 15:17:02', NULL, '0', 0, NULL, '', NULL, '0', NULL, '', '0', '0', 'null', 'null', 'null', 'null', '', '0', '', '', '', '', '', ''),
-(25, '372941', 'Kpud', '372941', 46, 'b8d599c60ec0eb2f91940088733ace37f46d7598', '0786543212', '2021-01-07 15:17:40', '394986', '2021-01-07 15:17:40', NULL, '0', 0, NULL, '', NULL, '0', NULL, '', '0', '0', 'null', 'null', 'null', 'null', '', '0', '', '', '', '', '', ''),
+(25, '372941', 'Kpud', '372941', 46, 'b8d599c60ec0eb2f91940088733ace37f46d7598', '0786543212', '2021-01-07 15:17:40', '394986', '2021-01-07 15:17:40', NULL, 'Treasurer', 0, NULL, '', NULL, '0', NULL, '', '0', '0', 'null', 'null', 'null', 'null', '', '0', '', '', '', '', '', ''),
 (26, '816136', 'Tom sembera', '816136', 46, '3b2b713292d4373ae5885f47761d710715f660c5', '0785432123', '2021-01-07 15:21:17', '992349', '2021-01-07 15:21:17', 'Male', 'Member', 0, NULL, '', NULL, '0', 0, '', '0', '0', 'null', 'null', 'null', 'null', '', '0', '', '', '', '', '', ''),
 (27, '488142', 'Kadingo', '488142', 46, '8a230489178b8058b54cc404fbe313903b5ccb89', NULL, '2021-01-10 11:18:00', '934998', '2021-01-10 11:18:00', 'Male', 'Member', 0, NULL, '', NULL, '0', 0, '', '0', '0', 'null', 'null', 'null', 'null', '', '0', '', '', '', '', '', ''),
 (28, '851837', 'Kalo', '851837', 46, '8d117575cb04eddc7aee4c0e32aa772c2b3b03b9', NULL, '2021-01-10 11:18:16', '539137', '2021-01-10 11:18:16', 'Male', 'Member', 0, NULL, '', NULL, '0', 0, '', '0', '0', 'null', 'null', 'null', 'null', '', '0', '', '', '', '', '', ''),
-(29, '176354', 'Star bucks', '176354', 46, 'd2cfccaac13dccc4efe473fdf1de89766bb80912', NULL, '2021-01-11 08:12:20', '163671', '2021-01-11 08:12:20', 'Female', 'Member', 0, NULL, '', NULL, '0', 0, '', '0', '0', 'null', 'null', 'null', 'null', '', '0', '', '', '', '', '', '');
+(29, '176354', 'Star bucks', '176354', 46, 'd2cfccaac13dccc4efe473fdf1de89766bb80912', NULL, '2021-01-11 08:12:20', '163671', '2021-01-11 08:12:20', 'Female', 'Chairperson', 0, NULL, '', NULL, '0', 0, '', '0', '0', 'null', 'null', 'null', 'null', '', '0', '', '', '', '', '', '');
 
 -- --------------------------------------------------------
 
@@ -27342,7 +27390,7 @@ CREATE TABLE IF NOT EXISTS `settings` (
 --
 
 INSERT INTO `settings` (`id`, `selling_price`, `buying_price`, `chicken_price`) VALUES
-(1, '600', '400', 11000);
+(1, '600', '400', 500);
 
 -- --------------------------------------------------------
 
@@ -27399,8 +27447,7 @@ CREATE TABLE IF NOT EXISTS `suppliers` (
 INSERT INTO `suppliers` (`id`, `username`, `supplier_no`, `name`, `email`, `phone`, `phoneb`, `password`, `reg_date`, `gender`, `reset_code`, `reset_time`, `business_name`, `district`, `county`, `subcounty`, `parish`, `village`, `address`, `created_by`, `status`, `time_created`) VALUES
 (8, '895372', '895372', 'Kagoro Mark-2', 'spetderlatigo@gmail.com', '0785964798', NULL, 'ebd8d943c35eb72da1a7db66e8ed491358e1d065', '2020-12-06 16:33:04', 'Male', '163456', '2020-12-06 16:33:04', 'Red Chicken Suppliers', 'KIBAALE', 'BUGANGAIZI  WEST COUNTY', 'BWANSWA', 'GAYAZA', 'Xuts', 'Wairaka, Rd', 1, 0, '2020-12-06 16:33:04'),
 (9, '223844', '223844', 'Kageni Peter', 'speterlatigo32@gmail.com', '0757575431', '', '7c4a8d09ca3762af61e59520943dc26494f8941b', '2020-12-06 21:53:06', 'Male', 'ba464f4450086fb9be0545cf01bde44e45937ff1', '2020-12-09 11:48:31', 'Rod Point', 'JINJA', 'BUTEMBE COUNTY', 'BUSEDDE', 'BUGOBYA', 'Ajali', 'Plot 7, Mbarara Rd', 1, 1, '2020-12-06 21:53:06'),
-(10, '631114', '631114', 'Kageni Peter', 'speterlatigo332@gmail.com', '0757575432', '', '230b2749297edc6fde5f64c771b69a8bd96176d3', '2020-12-06 21:54:37', 'Male', '969631', '2020-12-06 21:54:37', 'Rod Point', 'JINJA', 'BUTEMBE COUNTY', 'BUSEDDE', 'BUGOBYA', 'Ajali', 'Plot 7, Mbarara Rd', 1, 0, '2020-12-06 21:54:37'),
-(11, '789688', '789688', 'Kageni Peter', 'speterlatigx332@gmail.com', '0757375432', '12f66f03d38ae50e3d22a8a197636272e3e518ed', 'ea7c5f1695033dfd298159ce219be3c43d85f2f8', '2020-12-06 21:55:32', 'Male', '295681', '2020-12-06 21:55:32', 'Rod Point', 'JINJA', 'BUTEMBE COUNTY', 'BUSEDDE', 'BUGOBYA', 'Ajali', 'Plot 7, Mbarara Rd', 1, 0, '2020-12-06 21:55:32'),
+(11, '789688', '789688', 'Kageni Peter', 'speterlatigx332@gmail.com', '0755737543', '0756445644', 'ea7c5f1695033dfd298159ce219be3c43d85f2f8', '2020-12-06 21:55:32', 'Male', '295681', '2020-12-06 21:55:32', 'CRB', 'JINJA', 'BUTEMBE COUNTY', 'BUSEDDE', 'BUGOBYA', 'Ajali', 'Plot 7, Mbarara Rd', 1, 0, '2020-12-06 21:55:32'),
 (14, '617452', '617452', 'XYZ', 'a@d.com', '0701067454', '0776543213', '579471', '2020-12-10 08:11:08', 'Male', '579471', '2020-12-10 08:11:08', 'did', 'KIBOGA', 'KIBOGA  EAST COUNTY', 'BUKOMERO', 'KAGOGO', 'dsd', 'Xi', 2, 0, '2020-12-10 08:11:08'),
 (15, '799958', '799958', 'BizA', 'a@g.com', '0784543324', '', '5bafc648f2a8607f3ce09893eeab4649421528a5', '2020-12-10 12:49:33', 'Female', '336531', '2020-12-10 12:49:33', 'Xi78', 'KIBAALE', 'BUYAGA EAST COUNTY', 'KAGADI', 'KENGA', 'Xii5', 'Address', 2, 0, '2020-12-10 12:49:33');
 
@@ -27427,32 +27474,26 @@ CREATE TABLE IF NOT EXISTS `supply_orders` (
   PRIMARY KEY (`id`),
   KEY `group_id` (`group_id`),
   KEY `userid` (`member_id`),
-  KEY `supplier_id` (`supplier_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=latin1;
+  KEY `supplier_id` (`supplier_id`),
+  KEY `group_order_no` (`group_order_no`)
+) ENGINE=InnoDB AUTO_INCREMENT=188 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `supply_orders`
 --
 
 INSERT INTO `supply_orders` (`id`, `order_no`, `group_order_no`, `group_id`, `member_id`, `qty`, `price`, `status`, `supplier_id`, `time_recorded`, `time_received`, `age`) VALUES
-(28, '8798491645', '1643475577', 46, 26, 87, 11000, 'Pending Approval', NULL, '2021-01-16 15:29:16', NULL, NULL),
-(29, '7936282313', '3212224513', 46, 26, 87, 11000, 'Pending Approval', NULL, '2021-01-16 16:35:26', NULL, NULL),
-(30, '5539765535', '6163344181', 46, 29, 76, 11000, 'Pending Approval', NULL, '2021-01-16 18:51:24', NULL, NULL),
-(31, '4276219977', '2387124951', 46, 26, 76, 11000, 'Pending Approval', NULL, '2021-01-16 18:56:04', NULL, NULL),
-(32, '5912646136', '8177859789', 46, 17, 71, 11000, 'Pending Approval', NULL, '2021-01-16 18:58:38', NULL, NULL),
-(33, '8594117932', '3558514985', 46, 26, 8, 11000, 'Pending Approval', NULL, '2021-01-16 18:59:12', NULL, NULL),
-(34, '3735234691', '2226218133', 46, 26, 6, 11000, 'Pending Approval', NULL, '2021-01-16 18:59:56', NULL, NULL),
-(35, '1682839265', '5816672953', 46, 21, 67, 11000, 'Pending Approval', NULL, '2021-01-16 19:07:47', NULL, NULL),
-(36, '4725372641', '5816672953', 46, 16, 76, 11000, 'Pending Approval', NULL, '2021-01-16 19:07:47', NULL, NULL),
-(37, '5242628932', '4473828586', 46, 29, 76, 11000, 'Pending Approval', NULL, '2021-01-17 12:42:37', NULL, NULL),
-(38, '6859763265', '5823385187', 46, 21, 80, 11000, 'Pending Approval', NULL, '2021-01-17 12:44:35', NULL, NULL),
-(39, '7317272161', '1954684649', 46, 26, 43, 11000, 'Pending Delivery', NULL, '2021-01-17 13:59:29', NULL, NULL),
-(40, '4715188973', '1954684649', 46, 17, 78, 11000, 'Pending Approval', NULL, '2021-01-17 13:59:29', NULL, NULL),
-(41, '2928523782', '1185784481', 46, 27, 76, 11000, 'Out for Delivery', 15, '2021-01-17 14:04:04', NULL, NULL),
-(42, '8741847445', '1654544641', 46, 26, 66, 11000, 'Out for Delivery', 15, '2021-01-17 14:05:20', NULL, NULL),
-(43, '9488199196', '4153577348', 46, 28, 76, 11000, 'Out for Delivery', 15, '2021-01-17 14:20:56', NULL, NULL),
-(44, '1768473817', '1172219714', 46, 26, 65, 11000, 'Out for Delivery', 15, '2021-01-17 15:16:40', NULL, NULL),
-(45, '7555344549', '6489315455', 46, 26, 76, 11000, 'Pending Approval', NULL, '2021-01-20 16:07:45', NULL, NULL);
+(177, '5182892918', '5154869474', 46, 29, 7, 500, 'Out for Delivery', NULL, '2021-01-27 08:13:04', NULL, NULL),
+(178, '5681728256', '7975632521', 46, 27, 7, 500, 'Out for Delivery', NULL, '2021-01-27 08:43:59', NULL, NULL),
+(179, '9287283575', '7975632521', 46, 26, 88, 500, 'Out for Delivery', NULL, '2021-01-27 08:43:59', NULL, NULL),
+(180, '3257469144', '8473219954', 46, 26, 8, 500, 'Pending Delivery', NULL, '2021-01-29 14:26:20', NULL, NULL),
+(181, '9786448687', '8368395853', 46, 25, 5, 500, 'Failed', NULL, '2021-01-29 19:47:22', NULL, NULL),
+(182, '9125952476', '5659995268', 46, 27, 5, 500, 'Failed', NULL, '2021-01-29 19:49:00', NULL, NULL),
+(183, '3743852267', '5639419816', 46, 27, 87, 500, 'Failed', NULL, '2021-01-29 20:13:11', NULL, NULL),
+(184, '2215865636', '2258655967', 46, 29, 87, 500, 'Failed', NULL, '2021-01-29 20:17:59', NULL, NULL),
+(185, '4183268825', '7541564274', 46, 27, 9, 500, 'Failed', NULL, '2021-01-29 20:22:45', NULL, NULL),
+(186, '1879911677', '1717199493', 46, 26, 78, 500, 'Failed', NULL, '2021-01-29 20:39:25', NULL, NULL),
+(187, '5751417447', '1491252313', 46, 17, 8, 500, 'Failed', NULL, '2021-01-29 20:40:30', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -27465,14 +27506,115 @@ CREATE TABLE IF NOT EXISTS `supply_order_status` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `order_id` int(11) NOT NULL,
   `status` varchar(40) NOT NULL,
-  `status_time` datetime NOT NULL,
+  `status_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `phone` varchar(40) NOT NULL,
+  `method` varchar(40) NOT NULL,
+  `message` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `order_id` (`order_id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=295 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `supply_order_status`
+--
+
+INSERT INTO `supply_order_status` (`id`, `order_id`, `status`, `status_time`, `phone`, `method`, `message`) VALUES
+(248, 139, 'Pending Delivery', '2021-01-27 08:13:04', '', 'Wallet', 'Payment Completed'),
+(249, 140, 'Failed', '2021-01-27 08:43:59', '', 'Wallet', 'Your wallet balance is less than payment amount'),
+(250, 140, 'Out for Delivery', '2021-01-28 17:59:10', '', '', 'Out for Delivery'),
+(251, 140, 'Out for Delivery', '2021-01-28 17:59:20', '', '', 'Out for Delivery'),
+(252, 139, 'Out for Delivery', '2021-01-28 18:41:58', '', '', 'Out for Delivery'),
+(253, 140, 'Delivered', '2021-01-28 19:21:11', '', '', 'Delivered'),
+(254, 139, 'Delivered', '2021-01-28 19:21:11', '', '', 'Delivered'),
+(255, 140, 'Pending Delivery', '2021-01-28 19:21:23', '', '', 'Pending Delivery'),
+(256, 139, 'Pending Delivery', '2021-01-28 19:21:23', '', '', 'Pending Delivery'),
+(257, 140, 'Out for Delivery', '2021-01-29 13:05:51', '', '', 'Out for Delivery'),
+(258, 139, 'Out for Delivery', '2021-01-29 13:05:51', '', '', 'Out for Delivery'),
+(259, 140, 'Pending Delivery', '2021-01-29 13:06:16', '', '', 'Pending Delivery'),
+(260, 139, 'Pending Delivery', '2021-01-29 13:06:16', '', '', 'Pending Delivery'),
+(261, 140, 'Out for Delivery', '2021-01-29 13:06:46', '', '', 'Out for Delivery'),
+(262, 139, 'Out for Delivery', '2021-01-29 13:06:46', '', '', 'Out for Delivery'),
+(263, 140, 'Delivered', '2021-01-29 13:07:13', '', '', 'Delivered'),
+(264, 139, 'Delivered', '2021-01-29 13:07:13', '', '', 'Delivered'),
+(265, 140, 'Pending Delivery', '2021-01-29 13:08:16', '', '', 'Pending Delivery'),
+(266, 139, 'Pending Delivery', '2021-01-29 13:08:16', '', '', 'Pending Delivery'),
+(267, 140, 'Out for Delivery', '2021-01-29 13:09:30', '', '', 'Out for Delivery'),
+(268, 139, 'Out for Delivery', '2021-01-29 13:09:31', '', '', 'Out for Delivery'),
+(269, 140, 'Out for Delivery', '2021-01-29 13:12:38', '', '', 'Out for Delivery'),
+(270, 139, 'Out for Delivery', '2021-01-29 13:12:38', '', '', 'Out for Delivery'),
+(271, 140, 'Out for Delivery', '2021-01-29 13:13:31', '', '', 'Out for Delivery'),
+(272, 139, 'Out for Delivery', '2021-01-29 13:13:31', '', '', 'Out for Delivery'),
+(273, 140, 'Out for Delivery', '2021-01-29 13:14:50', '', '', 'Out for Delivery'),
+(274, 139, 'Out for Delivery', '2021-01-29 13:14:50', '', '', 'Out for Delivery'),
+(275, 141, 'Pending Delivery', '2021-01-29 14:26:20', '', 'Wallet', 'Payment Completed'),
+(276, 142, 'Failed', '2021-01-29 15:51:58', '', 'Wallet', 'Your wallet balance is less than payment amount'),
+(277, 143, 'Failed', '2021-01-29 15:52:46', '', 'Wallet', 'Your wallet balance is less than payment amount'),
+(278, 143, 'Failed', '2021-01-29 16:09:32', '', 'Wallet', 'Your wallet balance is less than payment amount'),
+(279, 142, 'Failed', '2021-01-29 17:24:49', '', 'Wallet', 'Your wallet balance is less than payment amount'),
+(280, 144, 'Failed', '2021-01-29 19:47:22', '', 'Wallet', 'Wallet balance is less than payment amount'),
+(281, 145, 'Pending Approval', '2021-01-29 19:49:00', '0785967798', 'Mobile Money', 'Pending Approval and Payment'),
+(282, 145, 'Failed', '2021-01-29 19:50:57', '0785967798', 'Mobile Money', 'Approval not made from phone'),
+(283, 146, 'Failed', '2021-01-29 20:13:11', '', 'Wallet', 'Wallet balance is less than payment amount'),
+(284, 147, 'Failed', '2021-01-29 20:17:59', '', 'Wallet', 'Wallet balance is less than payment amount'),
+(285, 147, 'Pending Approval', '2021-01-29 20:18:12', '0785967798', 'Mobile Money', 'Pending Approval and Payment'),
+(286, 148, 'Failed', '2021-01-29 20:22:45', '0785967798', 'Mobile Money', 'Unable to process mobile money payment'),
+(287, 148, 'Failed', '2021-01-29 20:22:53', '', 'Wallet', 'Wallet balance is less than payment amount'),
+(288, 148, 'Failed', '2021-01-29 20:23:21', '0785967798', 'Mobile Money', 'Unable to process mobile money payment'),
+(289, 143, 'Failed', '2021-01-29 20:27:05', '', 'Wallet', 'Wallet balance is less than payment amount'),
+(290, 148, 'Failed', '2021-01-29 20:37:51', '0785967798', 'Mobile Money', 'Unable to process mobile money payment'),
+(291, 149, 'Failed', '2021-01-29 20:39:25', '0785967798', 'Mobile Money', 'Unable to process mobile money payment'),
+(292, 147, 'Failed', '2021-01-29 20:40:00', '0785967798', 'Mobile Money', 'Approval not made from phone'),
+(293, 150, 'Pending Approval', '2021-01-29 20:40:30', '0785967798', 'Mobile Money', 'Pending Approval and Payment'),
+(294, 150, 'Failed', '2021-01-29 20:42:00', '0785967798', 'Mobile Money', 'Approval not made from phone');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `wallet`
+--
+
+DROP TABLE IF EXISTS `wallet`;
+CREATE TABLE IF NOT EXISTS `wallet` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `account_no` varchar(40) NOT NULL,
+  `amount` int(11) NOT NULL,
+  `type` varchar(10) NOT NULL,
+  `description` varchar(255) NOT NULL,
+  `time_recorded` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `status` varchar(40) NOT NULL,
+  `trans_id` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=72 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `wallet`
+--
+
+INSERT INTO `wallet` (`id`, `account_no`, `amount`, `type`, `description`, `time_recorded`, `status`, `trans_id`) VALUES
+(33, 'GM176354', 21600, 'Credit', 'Credit for Eggs Stock, Stock No: 4883172827', '2021-01-23 18:43:42', 'Completed', '126239716581546'),
+(34, 'GM619415', 2400, 'Credit', 'Credit for Eggs Stock, Stock No: 7143433815', '2021-01-23 18:43:53', 'Completed', '575311519518442'),
+(35, 'GM488142', 31200, 'Credit', 'Credit for Eggs Stock, Stock No: 8616615159', '2021-01-23 19:09:20', 'Completed', '833448643534174'),
+(36, 'GM283388', 30400, 'Credit', 'Credit for Eggs Stock, Stock No: 6427728935', '2021-01-23 19:09:20', 'Completed', '834988719645493'),
+(37, 'GM283388', 2000, 'Credit', 'Credit for Eggs Stock, Stock No: 5654273198', '2021-01-23 19:09:20', 'Completed', '416859822736429'),
+(38, 'GM619415', 30400, 'Credit', 'Credit for Eggs Stock, Stock No: 1885221867', '2021-01-23 19:09:20', 'Completed', '821376182329692'),
+(39, 'GM631752', 27200, 'Credit', 'Credit for Eggs Stock, Stock No: 4688646476', '2021-01-23 19:10:43', 'Completed', '655431882762896'),
+(65, 'GM631752', 3500, 'Debit', 'Payment for Chicken, order No: 6214882644', '2021-01-27 08:10:11', 'Completed', '227211393877876'),
+(66, 'GM631752', 3500, 'Debit', 'Payment for Chicken, order No: 6214882644', '2021-01-27 08:10:20', 'Completed', '172599451619197'),
+(67, 'GM631752', 3500, 'Debit', 'Payment for Chicken, order No: 6214882644', '2021-01-27 08:10:40', 'Completed', '697583716894188'),
+(68, 'GM631752', 3500, 'Debit', 'Payment for Chicken, order No: undefined', '2021-01-27 08:11:03', 'Completed', '484761143478174'),
+(69, 'GM631752', 3500, 'Debit', 'Payment for Chicken, order No: undefined', '2021-01-27 08:11:30', 'Completed', '569259375435668'),
+(70, 'GM631752', 3500, 'Debit', 'Payment for Chicken, order No: 5154869474', '2021-01-27 08:13:04', 'Completed', '865734529828912'),
+(71, 'GM631752', 4000, 'Debit', 'Payment for Chicken, order No: 8473219954', '2021-01-29 14:26:20', 'Completed', '782724342777577');
 
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `chicken_payments`
+--
+ALTER TABLE `chicken_payments`
+  ADD CONSTRAINT `chicken_payments_ibfk_1` FOREIGN KEY (`group_id`) REFERENCES `groups` (`id`);
 
 --
 -- Constraints for table `chicken_status`
@@ -27509,7 +27651,14 @@ ALTER TABLE `group_members`
 -- Constraints for table `supply_orders`
 --
 ALTER TABLE `supply_orders`
-  ADD CONSTRAINT `supply_orders_ibfk_1` FOREIGN KEY (`group_id`) REFERENCES `groups` (`id`);
+  ADD CONSTRAINT `supply_orders_ibfk_1` FOREIGN KEY (`group_id`) REFERENCES `groups` (`id`),
+  ADD CONSTRAINT `supply_orders_ibfk_2` FOREIGN KEY (`group_order_no`) REFERENCES `chicken_payments` (`order_no`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `supply_order_status`
+--
+ALTER TABLE `supply_order_status`
+  ADD CONSTRAINT `supply_order_status_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `chicken_payments` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

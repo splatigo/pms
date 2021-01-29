@@ -304,7 +304,14 @@ function ajax_go(data,callback) {
                 $(".container").show()
 
                 if(result.errmsg){
+
                   display_err(result.errmsg)
+                  if(result.et=="session-expired"){
+                      setTimeout(function() {
+                          window.location="/"
+                      }, 4000);
+                    return 0;
+                  }
                   if(!data.return)
                       return 0;
                 }
@@ -321,9 +328,9 @@ function ajax_go(data,callback) {
                 $("#loading-div").hide()
 
               }, 2000);
-              setTimeout(function() {}, 2000);
-                ajax_go(data,callback)
-                //display_err("Unable to connect to server, you are probably offline",3000)
+              //setTimeout(function() {}, 2000);
+               // ajax_go(data,callback)
+                //display_err("Unable to connect to server",3000)
             }
 
     });
@@ -592,16 +599,20 @@ function load_profile(me,clms) {
       fv="-"
     if(ft=="date")
       fv=new Date(fv).toDateString()
-    tr+="<tr><td>"+cn+"</td><td>"+fv+"</td></tr>"
+    me[fn]=fv;
+   
   }
-  $("#profile-table").html(tr)
-  //
+
+  gen_table_mobile(clms,[me],"profile-table","no-profile")
 
 }
 function view_profile() {
   $("#profile-modal").modal("show")
 }
 function gen_table(hd,rs,tid,nid,options){
+  var w=document.body.clientWidth
+  if(w<=768)
+    return gen_table_mobile(hd,rs,tid,nid,options)
   if(!rs.length){
     $("#"+nid).show()
     $("#"+tid).hide()
@@ -625,16 +636,17 @@ function gen_table(hd,rs,tid,nid,options){
       var fn=hd[j].fn;
       var cn=hd[j].cn
       var ft=hd[j].ft
+
       if(ft=="serial"){
         fv=i+1
       }
 
       else if(ft=="options"){
-        fv=load_options(options,i)
+        fv=load_options(options,i,rs)
       }
       else if(ft=="cb"){
         cl=hd[j].cl;
-        var id=rs[i].id;
+        var id=rs[i][fn];
         fv="<input type='checkbox' value=\""+id+"\" class=\""+cl+"\">"
       }
       else if(ft=="money"){
@@ -647,6 +659,20 @@ function gen_table(hd,rs,tid,nid,options){
         if(fv==undefined)
           fv=""
       }
+      var cond=hd[j].cond
+      var ct=0
+      if(cond){
+        for(var k=0;k<cond.length;k++){
+          if(rs[i][cond[k].fn]==cond[k].val){
+            ct=cond[k].ct;
+            fv=cond[k].nval
+            break;
+
+          }
+        }
+      }
+      if(ct=="skip")
+        continue;
 
       td+="<td>"+fv+"</td>"
     }
@@ -656,15 +682,122 @@ function gen_table(hd,rs,tid,nid,options){
   var tbody="<tbody>"+tr+"</tbody>"
   var table=thead+tbody
 
-  $("#"+tid).html(table)
+  $("#"+tid).html("<div class='table-responsive'><table class='table table-striped'>"+table+"</table></div>")
+}
+function gen_table_mobile(hd,rs,tid,nid,options){
+
+  if(!rs.length){
+    $("#"+nid).show()
+    $("#"+tid).hide()
+    return 0
+  }
+  else{
+    $("#"+nid).hide()
+    $("#"+tid).show()
+  }
+  var div=""
+  for(var i=0;i<rs.length;i++){
+    if(i%2!=0)
+      var style="background:#eee;padding:20px;"
+    else
+      style="padding:20px;border-radius:3px;"
+     div+="<div style=\""+style+"\">"
+     if(options){
+        v=load_options(options,i,rs)
+        //div+="<div style='text-align:right'>"+v+"</div>"
+     }
+     var tr=""
+      for(var j=0;j<hd.length;j++){
+        var fn=hd[j].fn;
+        var cn=hd[j].cn;
+        var fv=rs[i][fn]
+        var ft=hd[j].ft;
+
+        var cond=hd[j].cond;
+        if(ft=="money"){
+
+          fv=cx(rs[i][fn])
+        }
+        else if(ft=="cb"){
+        cl=hd[j].cl;
+        var id=rs[i][fn];
+        fv="<input type='checkbox' value=\""+id+"\" class=\""+cl+"\">"
+        cn=""
+      }
+      else if(ft=="options"){
+          continue;
+      }
+      if(cond){
+
+          for(var k=0;k<cond.length;k++){
+            if(fv==cond[k].val){
+              fv=cond[k].nval
+              break;
+            }
+          }
+      }
+       var cs=2
+        if(options&&j==0){
+          cs=1
+          var ct=0;//conditin type
+          var cond=hd[hd.length-1].cond;//option conditions
+          if(cond){
+              for(var k=0;k<cond.length;k++){
+                if(rs[i][cond[k].fn]==cond[k].val){
+                  ct=cond[k].ct;
+                  break;
+
+                }
+              }
+          }
+          if(ct=="skip")
+              cs=2
+        }
+        else if(options)
+          cs=2
+
+        tr+="<tr style='border-bottom:0.3px;border-bottom-style:solid;border-color:#dee2e6'><td colspan="+cs+"><span class='bld' style='font-size:10px'>"+cn+"</span><br><span>"+fv+"</span></td>"
+        if(options&&j==0){
+         
+          if(ct=="skip")
+            continue;
+
+          v=load_options(options,i,rs)
+          tr+="<td style='text-align:right;'>"+v+"</td>"
+        }
+        tr+="</tr>"
+
+      }
+      var table="<table style='table-layout:auto;width:100%' >"+tr+"</table>"
+      div+=table+"</div>"
+
+  }
+  $("#"+tid).html(div)
 }
 
-function load_options(arr,index) {
-  var op="<div class='btn-group' >"
-    op+="<button class='btn btn-primary dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>Options</button>"
+function load_options(arr,index,rs) {
+  var op="<div class='btn-group dropleft' >"
+    op+="<button class='btn btn-primary dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'><i class='fa fa-bars'></i></button>"
     op+=" <div class='dropdown-menu'>"
     for(var i=0;i<arr.length;i++){
-      op+="<a class='dropdown-item' href='#' onclick='"+arr[i].method+"("+index+")'>"+arr[i].text+"</a>"
+      var cond=arr[i].cond;
+      if(cond){
+
+        for(var j=0;j<cond.length;j++){
+          var fv=rs[index][cond[j].fn]
+          
+          if(cond[j].val==fv){
+            op+="<a class='dropdown-item' href='#' onclick='"+arr[i].method+"("+index+")'>"+arr[i].text+"</a>"
+          }
+        }
+      }
+      else{
+        if(arr[i].fn){
+
+          index=rs[index][arr[i].fn]
+        }
+        op+="<a class='dropdown-item' href='#' onclick='"+arr[i].method+"("+index+")'>"+arr[i].text+"</a>"
+      }
     }
     op+="</div></div>"
     return op

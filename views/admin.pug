@@ -39,6 +39,7 @@ block content
                             span  Chicken Orders
                         div(class="dropdown-menu" aria-labelledby="a-supply-orders")
                             a(href="#" class='dropdown-item collapse-navbar' onclick="view_supply_orders('Pending Approval','Pending Delivery')") Pending Approval
+                             a(href="#" class='dropdown-item collapse-navbar' onclick="view_supply_orders('Failed','Failed')") Failed Orders
                             a(href="#" class='dropdown-item collapse-navbar' onclick="view_supply_orders('Pending Delivery','Out for Delivery')") Pending Delivery
                             a(href="#" class='dropdown-item collapse-navbar' onclick="view_supply_orders('Out for Delivery','Delivered')") Out for Delivery
                             a(href="#"  class='dropdown-item collapse-navbar' onclick="view_supply_orders('Delivered')") Delivered
@@ -310,9 +311,8 @@ block content
                         span(class="fa fa-group")
                         span(id="groups-hdr")  Groups List
                 div(class="card-body")
-                    div(class="table-responsive")
-                   
-                        table(id="groups-table" class="table table-striped")
+                    
+                    div(id="groups-table")
                     p(class="alert alert-info" id="no-groups") No groups added
         div(class="child-div hd" id="suppliers-div")
             button(class="btn btn-primary a-create-supplier") <i class='fa fa-plus'></i> New Supplier
@@ -323,8 +323,8 @@ block content
                         span(class="fa fa-group")
                         span(id="groups-hdr")  Suppliers' List
                 div(class="card-body")
-                    div(class="table-responsive")
-                        table(id="suppliers-table" class="table table-striped")
+                   
+                    div(id="suppliers-table")
                     p(class="alert alert-info" id="no-suppliers") No suppliers added
         div(class="child-div hd" id="funders-div")
             button(class="btn btn-primary" onclick="create_funder_dl()") <i class='fa fa-plus'></i> New Organization
@@ -335,8 +335,8 @@ block content
                         span(class="fa fa-group")
                         span(id="groups-hdr")  Organizations List
                 div(class="card-body")
-                    div(class="table-responsive")
-                        table(id="funders-table" class="table table-striped")
+                    
+                    div(id="funders-table" )
                     p(class="alert alert-info" id="no-funders") No organizations added
         
         div(class="child-div hd" id="orders-div")
@@ -349,8 +349,8 @@ block content
                        
                     button(id="chx-status-btn" class="btn btn-primary" onclick="change_status()")
                     p
-                    div(class="table-responsive")
-                        table(id="orders-table" class="table table-striped")
+                    
+                    div(id="orders-table" )
                     p(class="alert alert-info hd" id="no-orders") No egg orders in selected category
         div(class="child-div hd" id="supply-orders-div")
             div(class="card card-prmary")
@@ -366,9 +366,30 @@ block content
                             button(class="dropdown-item change-supply-order-status" onclick="change_supply_orders_status('Out for Delivery')") Mark as out for Delivery
                             button(class="dropdown-item change-supply-order-status" onclick="change_supply_orders_status('Delivered')") Mark as Delivered
                     p
-                    div(class="table-responsive")
-                        table(id="supply-orders-table" class="table table-striped")
+                    
+                    div(id="supply-orders-table" )
                     p(class="alert alert-info hd" id="no-supply-orders") No chicken orders in selected category
+        
+        div(class="modal fade" tabindex="-1" aria-labelledby="chicken-order-details" aria-hidden="true" id="chicken-order-details" data-backdrop="static")
+            div(class="modal-dialog modal-lg modal-dialog-scrollable" )
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h5(class="modal-title" id="add-new-member-hdr") Chicken Order Details
+                        button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                    div(class="modal-body")
+                        div(id="chicken-order-details-div")
+        div(class="hd child-div" id="chicken-orders-bd-div")
+            div(class="card card-prmary")
+                div(class="card-header bg-custom text-white") Chicken Orders Breakdown
+                div(class="card-body")
+                    button(class="btn btn-primary" onclick="back('supply-orders-div')")
+                        span(class="fa fa-arrow-circle-left") 
+                        span  Back
+                    p
+                  
+                    div(id="chicken-orders-bd-table")
+                    p(id="no-chicken-orders-bd" class="alert alert-info hd") No chicken orders have been made yet
         
         div(class="modal fade" tabindex="-1" aria-labelledby="assign-supplier-div" aria-hidden="true" id="assign-supplier-div")
             div(class="modal-dialog" )
@@ -414,8 +435,8 @@ block content
                     div(class="hd admin-tp")
                         button(id="chx-stock-status-btn" class="btn btn-primary" onclick="change_stock_status()")
                     p
-                    div(class="table-responsive")
-                        table(id="stock-table" class="table table-striped")
+                   
+                    div(id="stock-table")
                     p(class="alert alert-info hd" id="no-stock") No eggs stock in selected category
         
         div(class="child-div hd" id="cs-div")
@@ -445,8 +466,8 @@ block content
                     button(class="btn btn-primary hd" id="cs-filter") Filter Results
                     span(style="font-size:10px") **[Laying], [Non-Laying], [Total]
                     br
-                    div(class="table-responsive")
-                        table(id="cs-table" class="table table-striped")
+                   
+                    div(id="cs-table")
                     p(class="alert alert-info hd" id="no-cs") No chicken status
         
         div(class="modal fade" tabindex="-1" aria-labelledby="create-group-div" aria-hidden="true" id="create-group-div" data-backdrop="static")
@@ -584,8 +605,8 @@ block content
                             a(class="dropdown-item" href="#"  onclick="get_chicken_stock('Sold Off')") Sold Off
                            
                     h5(id="chicken-stock-hdr")
-                    div(class="table-responsive")
-                        table(id="chicken-stock-table" class="table table-striped")
+                   
+                    div(id="chicken-stock-table")
                     p(class="alert alert-info hd" id="no-chicken-stock") No stock added
         div(class="child-div hd" id="members-div")
             
@@ -595,8 +616,8 @@ block content
                     button(class="btn btn-primary" id="a-add-new-member") <i class="fa fa-plus"></i> Add New Member
                     p
                     h5 <i class='fa fa-group'></i> Group Members
-                    div(class="table-responsive")
-                        table(id="members-table" class="table")
+                  
+                    div(id="members-table")
                     p(class="alert alert-info hd" id="no-group-members") No group members
         
         div(class="modal fade" tabindex="-1" aria-labelledby="add-new-member-div" aria-hidden="true" id="add-new-member-div" data-backdrop="static")

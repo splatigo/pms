@@ -542,44 +542,27 @@ function load_groups(groups,msg,hdr) {
 		
 		$("#groups-hdr").text(hdr)
 	}
-	if(groups.length){
-		$("#no-groups").hide()
-		$("#groups-table").show()
-	}
-	else{
-		$("#no-groups").show()
-		$("#groups-table").hide()
-		return 0;
-	}
-	
-	
-	var tr="<thead><tr><th>#</th> <th>Group No.</th> <th>Group Name</th>"
+	adata.groups=groups
+	var hd=[{cn:"Group No.",fn:"group_no"},{cn:"Group Name",fn:"group_name"}]
 	if(adata.me.priv=="admin")
-		tr+="<th>Organization</th>"
-	tr+="<th>Location</th><th></th></tr></thead><tbody>"
-
+		hd[hd.length]={cn:"Organization",fn:"funder"}
+	hd[hd.length]={cn:"Location",fn:"location"}
+	hd[hd.length]={cn:"",ft:"options"}
+	var options=[{text:"Group Members",method:"view_group_members"},{text:"Edit",method:"show_edit_group_dialog"},{text:"Delete",method:"show_delete_group_dialog"}]
+	
 	for(var i=0;i<groups.length;i++){
-		var group_name=groups[i].group_name;
-		var location=groups[i].district+", "+groups[i].subcounty+", "+groups[i].parish
-		var status=groups[i].status
-		var group_id=groups[i].id;
-		var group_no=groups[i].group_no
-		var funder=groups[i].business_name;
+		var status=groups[i].status	
+		var funder=groups[i].business_name
 		if(funder==null)
 			funder="-"
-
+		groups[i].funder=funder;
 		var location=groups[i].district+", "+groups[i].county+", "+groups[i].subcounty+", "+groups[i].parish
+		groups[i].location=location
 		if(status==0)
-			status="Unapproved"
-		var dpd="<div class='dropdown'> <button type='button' class='btn btn-primary dropdown-toggle' data-toggle='dropdown'>Options</button><div class='dropdown-menu'><a  href='#' class='dropdown-item' onclick=\"view_group_members("+group_id+","+i+")\"><i class='fa fa-group'></i> Members</a><a href='#' class='dropdown-item' onclick=\"show_edit_group_dialog("+i+")\"><i class='fa fa-edit'></i> Edit</a><a href='#' class='dropdown-item' onclick=\"show_delete_group_dialog("+group_id+")\"><i class='fa fa-edit'></i> Delete</a></div>"
-
-		tr+="<tr><td>"+(i+1)+"</td> <td>"+group_no+"</td> <td>"+group_name+"</td>  "
-		if(adata.me.priv=="admin")
-			tr+="<td>"+funder+"</td>"
-		tr+="<td>"+location+"</td><td>"+dpd+"</td></tr>"
+			groups[i].status="Unapproved"
 	}
-	tr+="</tbody>"
-	$("#groups-table").html(tr)
+
+	gen_table(hd,groups,"groups-table","no-groups",options)
 }
 
 function load_suppliers(suppliers,sel) {
@@ -588,37 +571,20 @@ function load_suppliers(suppliers,sel) {
 		$(".child-div").hide()
 		$("#suppliers-div").show()
 	}
-	if(suppliers.length){
-		$("#no-suppliers").hide()
-		$("#suppliers-table").show()
-	}
-	else{
-		$("#no-suppliers").show()
-		$("#suppliers-table").hide()
-		return 0;
-	}
 	var ops="<option value=0>Select a supplier</option>"
-	var tr="<thead><tr><th>#</th> <th></th> <th>Supplier No.</th> <th>Password</th><th>Supplier Name</th><th>Business Name</th> <th>Phone</th> <th></th> </tr></thead><tbody>"
+	var hd=[{cn:"Supplier No.",fn:"supplier_no"},{cn:"Business Name",fn:"business_name"},{cn:"Password",fn:"reset_code"},{cn:"Phone",fn:"phone"},{cn:"",ft:"options"}]
+	var options=[{text:"Edit",method:"show_edit_supplier_dialog"},{text:"Delete",method:"show_delete_supplier_dialog",fn:"id"}]
 	for(var i=0;i<suppliers.length;i++){
-		var supplier_name=suppliers[i].supplier_name;
-		var business_name=suppliers[i].business_name
-		var location=suppliers[i].district+", "+suppliers[i].subcounty+", "+suppliers[i].parish
-		var status=suppliers[i].status
-		var supplier_id=suppliers[i].id;
 		var supplier_no="SP"+suppliers[i].supplier_no
-		var phone=suppliers[i].phone;
+		suppliers[i].supplier_no=supplier_no
 		var reset_code=suppliers[i].reset_code
-		var ts=new Date()
 		if(suppliers[i].status==1)
 			reset_code="******"
-		var dpd="<div class='dropdown'> <button type='button' class='btn btn-primary dropdown-toggle' data-toggle='dropdown'>Options</button><div class='dropdown-menu'><a href='#' class='dropdown-item' onclick=\"show_edit_supplier_dialog("+i+")\"><i class='fa fa-edit'></i> Edit</a><a href='#' class='dropdown-item' onclick=\"show_delete_supplier_dialog("+supplier_id+")\"><i class='fa fa-edit'></i> Delete</a></div></div>"
-		var gender=suppliers[i].gender
-		tr+="<tr><td>"+(i+1)+"</td> <td><img gender="+gender+" onerror='no_image(this)' style='width:50px;height:50px' src=\"/uploads/profiles/supp-"+supplier_id+"?ts="+ts+"\"></td><td>"+supplier_no+"</td><td>"+reset_code+"</td> <td>"+supplier_name+"</td>  <td>"+business_name+"</td><td>"+phone+"</td><td>"+dpd+"<td></tr>"
-		ops+="<option value="+supplier_id+">"+business_name+"</option>"
-	}
-	tr+="</tbody>"
-	$("#suppliers-table").html(tr)
+		suppliers[i].reset_code=reset_code
 
+		ops+="<option value="+suppliers[i].id+">"+suppliers[i].business_name+"</option>"
+	}
+	gen_table(hd,suppliers,"suppliers-table","no-suppliers",options)
 	$("#supplier-id").html(ops)
 }
 function load_funders(funders,priv,tb) {
@@ -718,8 +684,9 @@ function load_chicken_stock_sum(rs) {
 	}
 	$("#db-stock").html(rx)
 }
-function view_group_members(group_id,i) {
+function view_group_members(i) {
 	var group_name=adata.groups[i].group_name
+	var group_id=adata.groups[i].id;
 	adata.group_id=group_id
 	$("#group-name-2").text(group_name)
 	var data={url:"/admin",group_id:group_id,rq:"get-group-members",status:status}
@@ -817,42 +784,30 @@ function show_edit_supplier_dialog(i) {
 function load_group_members(group_members) {
 	$(".child-div").hide()
 	$("#members-div").show()
-	if(group_members.length==0){
-		$("#no-group-members").show()
-		$("#members-table").hide()
-		return 0
-	}
-	else{
-		$("#no-group-members").hide()
-		$("#members-table").show()
-	}	
-	adata.group_members=group_members;
-	var tr="<thead><tr><th>#</th><th></th><th>Name</th><th>Member No.</th><th>Password</th><th>Role</th><th>Phone</th><th></th></tr></thead><tbody>"
+	var rs=group_members
 	for(var i=0;i<group_members.length;i++){
-		var name=group_members[i].name;
 		var phone=group_members[i].phone
 		if(phone==null)
-			phone=""
+			phone="#NA"
+		rs[i].phone=phone
 		var id=group_members[i].id;
 		var userid=group_members[i].userid;
-		var role=group_members[i].role
-		var member_no="GM"+group_members[i].member_no
+		rs[i].member_no="GM"+group_members[i].member_no
 		var gender=group_members[i].gender
-		var status=group_members[i].status;
 		var reset_code=group_members[i].reset_code
+		var status=group_members[i].status
 		var ts=new Date()
 		if(status==1)
 			reset_code="******"
-		var op="<div class='btn-group' >"
-		op+="<button class='btn btn-primary dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>Options</button>"
-		op+=" <div class='dropdown-menu'>"
-		op+="<a class='dropdown-item' href='#' onclick='change_role_dl("+i+")'>Change Role</a>"
-		op+="<a class='dropdown-item' href='#' onclick='edit_user_dl("+i+")'>Edit Details</a>"
-		op+="<a class='dropdown-item' href='#' onclick='remove_member("+id+")'>Remove Member</a>"
-		op+="</div></div>"
-		tr+="<tr><td>"+(i+1)+"</td><td><img gender="+gender+" onerror='no_image(this)' style='width:50px;height:50px' src=\"/uploads/profiles/gm-"+id+"?ts="+ts+"\"></td><td>"+name+"</td><td>"+member_no+"</td><td>"+reset_code+"</td><td>"+role+"</td><td>"+phone+"</td><td>"+op+"</td></tr>"
+		rs[i].pp="<img gender="+gender+" onerror='no_image(this)' style='width:50px;height:50px' src=\"/uploads/profiles/gm-"+id+"?ts="+ts+"\">"
 	}
-	$("#members-table").html("</tbody>"+tr)
+	adata.group_members=group_members;
+	var th=[{cn:"Name",fn:"name"},{cn:"Profile",fn:"pp"},{cn:"Member No.",fn:"member_no"},{cn:"Password",fn:"reset_code"},{cn:"Role",fn:"role"},{cn:"Phone",fn:"phone"},{cn:"",ft:"options"}]
+	
+	var options=[{text:"Change Role",method:"change_role_dl"},{text:"Edit Details",method:"edit_user_dl"},{text:"Remove Member",method:"remove_member",fn:"id"}]
+	gen_table(th,rs,"members-table","no-group-members",options)
+	
+	
 	
 
 }
@@ -949,34 +904,9 @@ function view_orders(status,nstatus){
 function load_orders(orders) {
 	$(".child-div").hide()
 	$("#orders-div").show()
-
-	if(orders.length==0){
-		$("#orders-table").hide()
-		$("#no-orders").show()
-		$("#chx-status-btn").hide()
-		
-	}
-	else{
-		$("#no-orders").hide()
-		$("#orders-table").show()
-	}
-	var tr="<thead><tr><th></th><th>Order No.</th> <th>Customer</th> <th>Quantity</th><th>Amount</th><th>Payment Method</th><th>Ordered on</th></tr></thead><tbody>"
-	for(var i=0;i<orders.length;i++){
-		var order_no=orders[i].order_no
-		var id=orders[i].id;
-		var customer=orders[i].customer
-		var qty=orders[i].trays
-		var amount=orders[i].amount;
-		order_time=orders[i].order_time
-		var method=orders[i].method
-		if(method=="mobile-money")
-			method="Mobile Money"
-		else
-			method="Transpay"
-		tr+="<tr><td><input type='checkbox' value="+id+" class='tb status-cb'></td></td> <td>"+order_no+"</td> <td>"+customer+"</td> <td>"+qty+" trays</td><td>"+cx(amount)+"</td><td>"+method+"</td><td>"+order_time+"</td></tr>"
-	}
-	tr+="</tbody>"
-	$("#orders-table").html(tr)
+	var hd=[{ft:"cb",cl:"tb status-cb",fn:"id"},{cn:"Order No.",fn:"order_no"},{cn:"Customer",fn:"customer"},{cn:"Qty",fn:"trays"},{cn:"Amount",fn:"amount"},{cn:"Method",fn:"method"}]
+	gen_table(hd,orders,"orders-table","no-orders")
+	
 }
 
 function view_supply_orders(status){
@@ -994,20 +924,40 @@ function load_supply_orders(orders) {
 	$("#supply-orders-div").show()
 	var th=[]
 	if(adata.me.priv=="admin")
-		th[th.length]={cn:"",ft:"cb",cl:"tb supply-orders-status-cb"}
+		th[th.length]={cn:"",fn:"order_no",ft:"cb",cl:"tb supply-orders-status-cb"}
 	th[th.length]={cn:"Order No",fn:"order_no"}
+	th[th.length]={cn:"No. of Orders",fn:"no"}
 	th[th.length]={cn:"Group",fn:"group_name"}
 	th[th.length]={cn:"Qty",fn:"qty"}
 	th[th.length]={cn:"Amount",fn:"amount",ft:"money"}
 	th[th.length]={cn:"Payment Method",fn:"method"}
-	th[th.length]={cn:"Payment Phone",fn:"phone"}
+	th[th.length]={cn:"Status",fn:"status"}
 	if(orders.length&&orders[0].supplier)
 		th[th.length]={cn:"Supplier",fn:"supplier"}
 	th[th.length]={cn:"Ordered on",fn:"order_time"}
 	th[th.length]={cn:"",ft:"options"}
-	var options=[{text:"Order Details",method:"view_supply_order_details"},{text:"Order Form",method:"view_order_form"}]
+	var options=[{text:"Order Details",method:"chicken_order_details"},{text:"Members' Orders",method:"view_chicken_order_breakdown"},{text:"Order Form",method:"view_order_form"}]
 	gen_table(th,orders,"supply-orders-table","no-supply-orders",options)
 
+}
+function chicken_order_details(index) {
+	var order=adata.go[index]
+
+	var hd=[{cn:"Order No.",fn:"order_no"},{cn:"Qty",fn:"qty"},{cn:"No. of Orders",fn:"no"},{cn:"Total",fn:"amount",ft:"money"},{cn:"Payment Phone:",fn:"phone",cond:[{val:"",nval:"#NA"}]},{cn:"Method",fn:"method"},{cn:"Time Ordered",fn:"order_time"},{cn:"Status",fn:"status"},{cn:"Description",fn:"message",cond:[{val:"",nval:"#NA",ct:'text'}]}]
+	gen_table(hd,[order],'chicken-order-details-div')
+	$("#chicken-order-details").modal("show")
+}
+function view_chicken_order_breakdown(index) {
+	var group_order_no=adata.go[index].order_no;
+	var group_id=adata.go[index].group_id
+	var data={group_id:group_id,url:"/admin",rq:"get-chicken-order-breakdown",group_order_no:group_order_no}
+	ajax_go(data,function (rst) {
+		var orders=rst.orders_bd;
+		$(".child-div").hide()
+		$("#chicken-orders-bd-div").show()
+		var hd=[{cn:"Order No.",fn:"order_no"},{cn:"Qty",fn:"qty"},{cn:"Amount",fn:"amount",ft:"money"},{cn:"Member",fn:"member_name"},{cn:"Time Ordered",fn:"time_recorded"}]
+		gen_table(hd,orders,"chicken-orders-bd-table","no-chicken-orders-bd")
+	})
 }
 
 function view_stock(status,nstatus){
@@ -1028,40 +978,21 @@ function view_stock(status,nstatus){
 		}
 
 		var stock=rst.stock;
-		load_stock(stock)
+		load_stock(stock,status)
 	})
 }
-function load_stock(stock) {
+function load_stock(stock,status) {
+
+	adata.egg_stock=stock;
 	$(".child-div").hide()
 	$("#stock-div").show()
 	if(stock.length==0){
-		$("#stock-table").hide()
-		$("#no-stock").show()
 		$("#chx-stock-status-btn").hide()
 	}
-	else{
-		$("#no-stock").hide()
-		$("#stock-table").show()
-	}
-	var tr="<thead><tr>"
-	if(adata.me.priv=="admin")
-		tr+="<th></th>"
-	tr+="<th>Stock No.</th> <th>Group</th> <th>Group Location</th><th>Qty</th><th>Payment</th><th>Posted on</th></tr></thead><tbody>"
-	for(var i=0;i<stock.length;i++){
-		var stock_no=stock[i].stock_no
-		var id=stock[i].id;
-		var group_name=stock[i].group_name
-		var location=stock[i].location
-		var qty=stock[i].trays
-		var amount=stock[i].amount;
-		posted_on=stock[i].posted_on
-		tr+="<tr>"
-		if(adata.me.priv=="admin")
-			tr+="<td><input type='checkbox' value="+id+" class='tb stock-status-cb'></td>"
-		tr+="<td>"+stock_no+"</td> <td>"+group_name+"</td> <td>"+location+"</td> <td>"+qty+"</td><td>"+cx(amount)+"</td><td>"+posted_on+"</td></tr>"
-	}
-	tr+="</tbody>"
-	$("#stock-table").html(tr)
+	var hd=[{cn:"Stock No.",fn:"stock_no"},{cn:"Group",fn:"group_name"},{cn:"Member",fn:"member_name"},{cn:"Qty",fn:"trays"},{cn:"Payment",fn:"amount",ft:"money"},{cn:"Posted on",fn:"posted_on"}]
+	if(adata.me.priv=="admin"&&status!="Paid")
+		hd.unshift({cn:"",fn:"id",ft:"cb",cl:"tb stock-status-cb"})
+	gen_table(hd,stock,"stock-table","no-stock")
 }
 function change_status() {
 	var oid=[];var k=0; //order id ; oid
@@ -1108,11 +1039,12 @@ function load_days(argument) {
 }
 function change_supply_orders_status(status) {
 	var oid=[];var k=0; //order id ; oid
+	var amount=[]
+	var acc=[]
 	$(".supply-orders-status-cb").each(function () {
 		var val=$(this).val()
 		if(this.checked==true){
 			oid[k++]=val;
-
 		}	
 	})
 	if(oid.length==0)
@@ -1136,6 +1068,7 @@ $(function(){
 		}
 		data=adata.data;
 		data.supplier_id=supplier_id;
+
 		$("#assign-supplier-div").modal("hide")
 		effect_change_supply_order_status(data)
 	})
@@ -1149,12 +1082,19 @@ function effect_change_supply_order_status(data){
 }
 function change_stock_status() {
 	var oid=[];var k=0; //order id ; oid
+	var egg_stock=adata.egg_stock
+	var i=0;
 	$(".stock-status-cb").each(function () {
+
 		var val=$(this).val()
 		if(this.checked==true){
-			oid[k++]=val;
+			amount=egg_stock[i].amount
+			acc="GM"+egg_stock[i].member_no
+			var stock_no=egg_stock[i].stock_no
+			oid[k++]={id:val,amount:amount,acc:acc,stock_no:stock_no};
 
 		}	
+		i++;
 	})
 	if(oid.length==0)
 		return display_err("No stock item selected")
@@ -1174,7 +1114,7 @@ function change_stock_status() {
 			$("#chx-stock-status-btn").hide()
 		}
 		
-		load_stock(stock)
+		load_stock(stock,nstatus)
 
 	})
 }
@@ -1237,21 +1177,10 @@ function filter_group() {
 
 function load_cs(rst) {
 	$("#cs-hdr").text(rst.cshdr)
-
 	$(".child-div").hide()
 	$("#cs-div").show()
-	var cs=rst.chicken_status;
-	if(cs.length==0){
-		$("#no-cs").show()
-		$("#cs-table").hide()
-		return 0
-	}
-	else{
-		$("#no-cs").hide()
-		$("#cs-table").show()
-	}	
+	var cs=rst.chicken_status;	
 	adata.chicken_status=cs;
-	var tr="<thead><tr><th>#</th><th>Group No.</th><th>Group</th><th>Healthy</th><th>Sick</th><th>Dead</th><th>Sold</th></tr></thead><tbody>"
 	for(var i=0;i<cs.length;i++){
 		var healthy=cs[i].healthy;
 		var sick=cs[i].sick
@@ -1268,10 +1197,11 @@ function load_cs(rst) {
 		var s="["+sick+"],["+sick_nl+"],["+(sick+sick_nl)+"]"
 		var d="["+dead+"],["+dead_nl+"],["+(dead+dead_nl)+"]"
 		var sl="["+sold+"],["+sold_nl+"],["+(sold+sold_nl)+"]"
-		tr+="<tr><td>"+(i+1)+"</td><td>"+group_no+"</td><td>"+group_name+"</td><td>"+h+"</td><td>"+s+"</td><td>"+d+"</td><td>"+sl+"</td></tr>"
+		cs[i].h=h;cs[i].s=s;cs[i].d=d;cs[i].sl=sl;
+		
 	}
-	$("#cs-table").html("</tbody>"+tr)
-	
+	var hd=[{cn:"Group No.",fn:"group_no"},{cn:"Group",fn:"group_name"},{cn:"Healthy",fn:"h"},{cn:"Sick",fn:"s"},{cn:"Dead",fn:"d"},{cn:"Sold",fn:"sl"}]
+	gen_table(hd,cs,"cs-table","no-cs");	
 }
 
 function get_chicken_stock(status) {
@@ -1288,7 +1218,7 @@ function load_chicken_stock(rs){
 	//cn; column name
 	adata.chicken_stock=rs;
 
-	var hd=[{cn:"#",ft:"serial"},{cn:"Stock No.",fn:"stock_no"},{cn:"Qty",fn:"qty"},{cn:"Supplier",fn:"business_name"},{cn:"Age",fn:"age"},{cn:"Status",fn:"status"},{cn:"Time Recorded",fn:"tr"}]
+	var hd=[{cn:"Stock No.",fn:"stock_no"},{cn:"Qty",fn:"qty"},{cn:"Supplier",fn:"business_name"},{cn:"Age",fn:"age"},{cn:"Status",fn:"status"},{cn:"Time Recorded",fn:"tr"}]
 	for(var i=0;i<rs.length;i++){
 		var age=rs[i].age;
 

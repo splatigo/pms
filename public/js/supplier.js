@@ -2,7 +2,7 @@ var adata={}
 $(function () {
 	get_defaults()
 	$(".a-dashboard").click(function () {
-		$(".cd").hide()
+		$(".child-div").hide()
 		get_defaults()
 	})
 	$(".a-profile").click(function(){
@@ -33,12 +33,13 @@ function get_defaults() {
 		load_profile(rst.me,clms)
 		load_supply_orders_sum(rst.supply_orders_sum)
 		load_stock_sum(rst.stock_sum)
-		$(".cd").hide()
+		$(".child-div").hide()
 		$("#dashboard").show()
 	})
 }
 
 function load_supply_orders_sum(stock_sum) {
+	console.log(stock_sum)
 	$("#db-supply-orders-out-for-delivery").html("0 Orders<hr> 0 Chicks<hr>UGX 0")
 	$("#db-supply-orders-delivered").html("0 Orders<hr>0 Chicks <hr>UGX 0")
 	for(var i=0;i<stock_sum.length;i++){
@@ -89,13 +90,13 @@ function change_supply_orders_status(status) {
 		else
 			xstatus="Delivered"
 		$("#supply-orders-curr-status").text(" "+xstatus)
-		load_supply_orders(orders,status)
+		load_chicken_orders(orders,status)
 	})
 
 	
 }
-function view_supply_orders(status){
-	var data={url:"/supplier",rq:"get-supply-orders",status:status}
+function view_chicken_orders(status){
+	var data={url:"/supplier",rq:"get-chicken-orders",status:status}
 	ajax_go(data,function (rst) {
 		if(data.status=="Out for Delivery")
 			xstatus="Pending Orders"
@@ -103,12 +104,12 @@ function view_supply_orders(status){
 			xstatus="Delivered"
 		$("#supply-orders-curr-status").text(" "+xstatus)
 		var orders=rst.orders;
-		load_supply_orders(orders,status)
+		load_chicken_orders(orders,status)
 		
 	})
 }
-function load_supply_orders(orders,status) {
-	$(".cd").hide()
+function load_supply_orders_or(orders,status) {
+	$(".child-div").hide()
 	$("#supply-orders-div").show()
 	if(orders.length==0){
 		$("#supply-orders-table").hide()
@@ -139,15 +140,44 @@ function load_supply_orders(orders,status) {
 	$("#supply-orders-table").html(tr)
 }
 
+function load_chicken_orders(orders) {
+	adata.go=orders
+	$(".child-div").hide()
+	$("#chicken-orders-div").show()
+	var th=[]
+	th[th.length]={cn:"",ft:"cb",cl:"tb supply-orders-status-cb"}
+	th[th.length]={cn:"Order No",fn:"order_no"}
+	th[th.length]={cn:"Group",fn:"group_name"}
+	th[th.length]={cn:"Qty",fn:"qty"}
+	th[th.length]={cn:"Amount",fn:"amount",ft:"money"}
+	th[th.length]={cn:"Payment Method",fn:"method"}
+	th[th.length]={cn:"Payment Phone",fn:"phone"}
+	th[th.length]={cn:"Status",fn:"status"}
+	if(orders.length&&orders[0].supplier)
+		th[th.length]={cn:"Supplier",fn:"supplier"}
+	th[th.length]={cn:"Ordered on",fn:"order_time"}
+	gen_table(th,orders,"chicken-orders-table","no-chicken-orders")
+}
+function view_chicken_order_bd(index) {
+	var group_order_no=adata.go[index].order_no;
+	var group_id=adata.go[index].group_id
+	var data={group_id:group_id,url:"/supplier",rq:"get-chicken-order-bd",group_order_no:group_order_no}
+	ajax_go(data,function (rst) {
+		var orders=rst.orders;
+		$(".child-div").hide()
+		$("#chicken-order-bd-div").show()
+		var hd=[{cn:"Order No.",fn:"order_no"},{cn:"Qty",fn:"qty"},{cn:"Amount",fn:"amount",ft:"money"},{cn:"Member",fn:"member_name"},{cn:"Time Ordered",fn:"time_recorded"},{cn:"Status",fn:"status"}]
+		gen_table(hd,orders,"chicken-order-bd-table","no-chicken-order-bd")
+	})
+}
 
 
 
 //stock
 function get_stock() {
-	
 	var data={rq:"get-stock",url:"/supplier"}
 	ajax_go(data,function (rst) {
-		$(".cd").hide()
+		$(".child-div").hide()
 		$("#stock-div").show()
 		load_stock(rst.stock)
 	})

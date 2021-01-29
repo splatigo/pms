@@ -18,6 +18,7 @@ function  remove_from_cart(index) {
 	window.localStorage.setItem("cart",JSON.stringify(cart))
 	load_cart()
 }
+
 function load_cart() {
 	var cart=window.localStorage.getItem("cart")
 	if(cart==null||cart=="null")
@@ -28,12 +29,11 @@ function load_cart() {
 	if(cart.length==0){
 		$("#no-cart").text("")
 		$("#cart-modal").modal("show")
-
-		$("#cart-table,#cart-footer").hide()
+		$(".cart-div,#cart-footer").hide()
 		$("#empty-cart-div").show()
 		return 0
 	}
-	$("#cart-table,#cart-footer").show()
+	$("#cart-div,#cart-footer").show()
 	$("#empty-cart-div").hide()
 	var tno=0
 	for(var i=0;i<cart.length;i++){
@@ -42,21 +42,32 @@ function load_cart() {
 	if(tno==0)
 		tno=""
 	$("#no-cart").text(tno)
-	var tr="<thead><tr><th></th><th>Member</th> <th>Qty</th><th>Unit</th><th>Total</th></tr><thead><tbody>"
 	var ttotal=0;
+	
 	for(var i=0;i<cart.length;i++){
 		var qty=cart[i].qty;
 		var price=adata.settings.chicken_price
-		var total=qty*price;
+		cart[i].unit=price;
+		cart[i].total=total=qty*price;
 		ttotal+=total;
-		tr+="<tr><td><span class='fa fa-trash' onclick=\"remove_from_cart("+i+")\"></span></td><td>"+cart[i].member_name+"</td> <td>"+qty+"</td><td>"+cx(price)+"</td><td>"+cx(total)+"</td></tr>"
+		cart[i].trash="<button class='btn btn-primary'><span class='fa fa-trash' onclick=\"remove_from_cart("+i+")\"></span></button>"
 	}
 	adata.ttotal=ttotal;
 	adata.tqty=tno
-	$("#purchase-details").text("Payment for "+tno+" Chicks")
-	$("#purchase-amount").text(cx(ttotal))
-	$("#cart-table").html(tr+"</tbody>")
+	load_checkout_page(cart.length,tno,ttotal)
+	var hd=[{cn:"",fn:"trash"},{cn:"Member",fn:"member_name"},{cn:"Qty",fn:"qty"},{cn:"Unit",fn:"unit"},{cn:"Total",fn:"total",ft:"money"}]
+	gen_table(hd,cart,"cart-table","empty-cart-div")
 	$("#cart-modal").modal("show")
+}
+function load_checkout_page(no,tqty,ttotal) {
+	var ortx="Orders"
+	if(no==1)
+		ortx="Order"
+	var cktx="Chicks"
+	if(tqty==1)
+		cktx="Chick"
+	$("#purchase-details").text("Payment for "+no+" "+ortx+", "+tqty+" "+cktx)
+	$("#purchase-amount").text(cx(ttotal))
 }
 $(function () {
 	get_defaults()
@@ -240,6 +251,7 @@ $(function () {
 		$(".child-div").hide()
 		$("#gp-orders-div").show()
 		$("#new-order-div").modal("show")
+		adata.rq="add-order"
 		clear_fields()
 	})
 	$(".a-order-forms").click(function () {
@@ -299,12 +311,10 @@ $(function () {
 
 	})
 	$(".view-cart").click(function(){
-		$("#cart-div").show()
+		$("#cart-modal").modal("show")
+		$(".cart-div,.cart-btn").hide()
 		$("#cart-div,#check-out-btn").show()
-		$("#cart-checkout,#complete-payment-btn").hide()
 		load_cart()
-
-
 	})
 	$("#add-order-btn").click(function () {
 		var cart=window.localStorage.getItem("cart")
@@ -337,30 +347,10 @@ $(function () {
 		
 	})
 	$("#check-out-btn").click(function () {
-		$("#cart-div,#check-out-btn").hide()
-		$("#cart-checkout,#complete-payment-btn").show()
+		
 		return 0
 	})
-	$("#complete-payment-btn").click(function () {
-		var group_id=adata.group_id
-		var phone=$("#mm-phone").val()
-		var data={group_id:group_id,url:"/group",rq:"add-order",member_id:[],qty:[],price:adata.settings.chicken_price,phone:phone,tamount:adata.ttotal,tqty:adata.tqty}
-		var cart=JSON.parse(window.localStorage.getItem("cart"))
-		for(var i=0;i<cart.length;i++){
-			data.member_id[i]=cart[i].member_id;
-			data.qty[i]=cart[i].qty;
-		}
-		ajax_go(data,function (rst) {
-			$("#new-order-div").modal("hide")
-			display_succ("Order placed successfully")
-			var es=rst.group_orders;
-			$("#cart-modal").modal("hide")
-			$("#no-cart").text("")
-			window.localStorage.removeItem("cart")
-			cart=[]
-			load_orders(es)
-		})
-	})
+
 	$("#edit-order-btn").click(function () {
 		var group_id=adata.group_id
 		var data={group_id:group_id,url:"/group",rq:"edit-order"}
@@ -411,42 +401,19 @@ function view_egg_stock() {
 	})
 }
 function load_egg_stock(es) {
-	adata.es=es;
-	if(!es.length)
-	{
-		$("#no-stock").show()
-		$("#stock-table").hide()
-		return 0
-	}
-	$("#no-stock").hide()
-	$("#stock-table").show()
-	var tr="<thead><tr><th>Stock No</th><th>Recorded on</th><th>Quantity</th><th>Amount</th><th class='leader-item'>Member</th><th>Status</th><th></th></tr></thead><tbody>"
-	for(var i=0;i<es.length;i++){
-		var op="<div>"
-		var qty=es[i].trays;
-		var time_recorded=es[i].time_recorded
-		var id=es[i].id;
-		var stock_no=es[i].stock_no
-		var amount=cx(es[i].amount)
-		var status=es[i].status;
-		var member_name=es[i].member_name
-		if(status=="Pending Approval"){
-			op+="<button class='btn btn-primary dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>Options</button>"
-			op+=" <div class='dropdown-menu'>"
-			op+="<a class='dropdown-item' href='#' onclick='edit_stock_dl("+i+")'>Edit</a>"
-			op+="<a class='dropdown-item' href='#' onclick='remove_stock("+id+")'>Delete</a>"
-			op+="</div></div>"
-		}
-		tr+="<tr><td>"+stock_no+"</td><td>"+time_recorded+"</td><td>"+qty+"</td><td>"+amount+"</td><td class='leader-item'>"+member_name+"</td><td>"+status+"</td><td class='leader-item'>"+op+"</td></tr>"
-	}
-	$("#stock-table").html("</tbody>"+tr)
+	adata.es=es;	
+	
+	var hd=[{cn:"Stock No.",fn:"stock_no"},{cn:"Qty",fn:"trays"},{cn:"Amount",fn:"amount",ft:"money"},{cn:"Status",fn:"status"}]
 	if(adata.me.role=="Chairperson"){
-		$(".leader-item").show()
+		hd.splice(3,0,{cn:"Member",fn:"member_name"})
+		hd.push({cn:"",ft:"options",cond:[{val:"Paid",nval:"",fn:"status",ct:"skip"}]})
+		options=[{text:"Edit",method:"edit_stock_dl"},{text:"Delete",method:"remove_stock",fn:"id"}]
+		
 	}
 	else{
-		$(".leader-item").hide()
+		var options=0
 	}
-	
+	gen_table(hd,es,"stock-table","no-stock",options)
 }
 function load_orders_by_order_no(es) {
 	adata.orders=es;
@@ -603,6 +570,7 @@ function get_defaults() {
 		$("#my-name").text(" "+rst.me.name)
 		adata.me=rst.me
 		$("#db-members-count").text(group_members.length)
+		$(".db-wallet").text("UGX "+cx(rst.wallet))
 		var clms=[{cn:"Name",fn:"name"},{cn:"Member No.",fn:"member_no"},{cn:"Primary Phone",fn:"phone"},
 			{cn:"Other Phone",fn:"phoneb"},{cn:"Email",fn:"email"},{cn:"Date of Birth",fn:"dob",ft:"date"},
 			{cn:"Registration Date",fn:"reg_date",ft:"date"},{cn:"Gender",fn:"gender"},
@@ -724,6 +692,42 @@ function remove_member(id) {
 }
 
 function load_group_members(group_members,sel) {
+
+	var ops="<option value=0>Select a member</option>"
+	var rs=group_members
+	for(var i=0;i<group_members.length;i++){
+		var phone=group_members[i].phone
+		if(phone==null)
+			phone="#NA"
+		rs[i].phone=phone
+		var id=group_members[i].id;
+		var userid=group_members[i].id;
+		rs[i].member_no="GM"+group_members[i].member_no
+		var gender=group_members[i].gender
+		var reset_code=group_members[i].reset_code
+		var status=group_members[i].status
+		var ts=new Date()
+		if(status==1)
+			reset_code="******"
+		rs[i].pp="<img gender="+gender+" onerror='no_image(this)' style='width:50px;height:50px' src=\"/uploads/profiles/gm-"+id+"?ts="+ts+"\">"
+		ops+="<option value="+userid+">"+group_members[i].name+"</option>"
+	}
+	adata.group_members=group_members;
+	var th=[{cn:"Name",fn:"name"},{cn:"Profile",fn:"pp"},{cn:"Member No.",fn:"member_no"},{cn:"Role",fn:"role"},{cn:"Phone",fn:"phone"}]
+	if(adata.me.role=="Chairperson"){
+		th.splice(3,0,{cn:"Password",fn:"reset_code"})
+		th.push({cn:"",ft:"options"})
+	}
+	else{
+	}
+	if(!sel)
+		$("#members-div").show()
+	$("#member-id,#order-member-id,#cs-member-id").html(ops)
+	var options=[{text:"Change Role",method:"change_role_dl"},{text:"Edit Details",method:"edit_user_dl"},{text:"Remove Member",method:"remove_member",fn:"id"}]
+
+	gen_table(th,rs,"members-table","no-group-members",options)
+}
+function load_group_members_8(group_members,sel) {
 	//$(".child-div").hide()
 	//$("#members-div").show()
 	if(group_members.length==0){
@@ -817,22 +821,8 @@ function edit_user_dl(i){
 }
 function load_chicken_status(rst) {
 	var cs=rst.chicken_status;
-
-	if(cs.length==0){
-		$("#no-chicken-status").show()
-		$("#chicken-status-table").hide()
-		return 0
-	}
-	else{
-		$("#no-chicken-status").hide()
-		$("#chicken-status-table").show()
-	}	
-	adata.chicken_status=cs;
-	
-	var tr="<thead><tr><th>#</th><th>Member</th><th>Healthy</th><th>Sick</th><th>Dead</th><th>Sold</th><th>Recorded on</th><th></th></tr></thead><tbody>"
-	
+	adata.chicken_status=cs;	
 	for(var i=0;i<cs.length;i++){
-		var member_name=cs[i].member_name
 		var healthy=cs[i].healthy;
 		var sick=cs[i].sick
 		var dead=cs[i].dead;
@@ -841,23 +831,16 @@ function load_chicken_status(rst) {
 		var sick_nl=cs[i].sick_nl
 		var dead_nl=cs[i].dead_nl;
 		var sold_nl=cs[i].sold_nl;
-		var time_recorded=cs[i].time_recorded
-		var op=""
-		var id=cs[i].id;
-		var op="<div class='btn-group' >"
-		op+="<button class='btn btn-primary dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>Options</button>"
-		op+=" <div class='dropdown-menu'>"
-		op+="<a class='dropdown-item' href='#' onclick='edit_cs_dl("+i+")'>Edit</a>"
-		op+="<a class='dropdown-item' href='#' onclick='remove_cs("+id+")'>Delete</a>"
-		op+="</div></div>"
 		var h="["+healthy+"],["+healthy_nl+"],["+(healthy+healthy_nl)+"]"
 		var s="["+sick+"],["+sick_nl+"],["+(sick+sick_nl)+"]"
 		var d="["+dead+"],["+dead_nl+"],["+(dead+dead_nl)+"]"
 		var sl="["+sold+"],["+sold_nl+"],["+(sold+sold_nl)+"]"
-		tr+="<tr><td>"+(i+1)+"</td><td>"+member_name+"</td><td>"+h+"</td><td>"+s+"</td><td>"+d+"<td>"+sl+"</td></td><td>"+time_recorded+"</td><td>"+op+"</td></tr>"
-		
+		cs[i].h=h;cs[i].s=s;cs[i].d=d;cs[i].sl=sl;
 	}
-	$("#chicken-status-table").html("</tbody>"+tr)
+	var options=[{text:"Edit",method:"edit_cs_dl"},{text:"Delete",method:"remove_cs",fn:"id"}]
+	var hd=[{cn:"Member",fn:"member_name"},{cn:"Healthy",fn:"h"},{cn:"Sick",fn:"s"},{cn:"Dead",fn:"d"},{cn:"Sold",fn:"sl"},{cn:"Recorded on",fn:"time_recorded"}]
+	gen_table(hd,cs,"chicken-status-table","no-chicken-status",options);
+	
 	
 }
 function edit_cs_dl(i) {
@@ -910,13 +893,12 @@ function view_orders() {
 function load_orders(rst) {
 	var go=rst
 	adata.go=go;
-	var hd=[{cn:"Order No.",fn:"order_no"},{cn:"Qty",fn:"qty"},{cn:"Total",fn:"total",ft:"money"},{cn:"Method",fn:"method"},{cn:"Phone",fn:"phone"},{cn:"Time Ordered",fn:"order_time"},{cn:"Status",fn:"status"},{cn:"Options",ft:"options"}]
-	var options=[{text:"View Details",method:"view_order_breakdown"},{text:"Order Form",method:"view_order_form"}]
+	var hd=[{cn:"Order No.",fn:"order_no"},{cn:"Qty",fn:"qty"},{cn:"No. of Orders",fn:"no"},{cn:"Total",fn:"total",ft:"money"},{cn:"Method",fn:"method"},{cn:"Time Ordered",fn:"order_time"},{cn:"Status",fn:"status"},{cn:"Options",ft:"options"}]
+	var options=[{text:"Retry Paying",method:"retry_paying",cond:[{val:"Failed",fn:"status"}]},{text:"Order Details",method:"chicken_order_details"},{text:"Members' Orders",method:"view_order_breakdown"},{text:"Order Form",method:"view_order_form"}]
 	gen_table(hd,go,"gp-orders-table","no-gp-orders",options)
 }
 function view_order_breakdown(index) {
 	var group_order_no=adata.go[index].order_no;
-	
 	var group_id=$("#h-group-id").val()
 	var data={group_id:group_id,url:"/group",rq:"view-order-breakdown",group_order_no:group_order_no}
 	ajax_go(data,function (rst) {
@@ -926,6 +908,13 @@ function view_order_breakdown(index) {
 		var hd=[{cn:"Order No.",fn:"order_no"},{cn:"Qty",fn:"qty"},{cn:"Amount",fn:"amount",ft:"money"},{cn:"Member",fn:"member_name"},{cn:"Time Ordered",fn:"time_recorded"},{cn:"Status",fn:"status"}]
 		gen_table(hd,orders,"orders-table","no-orders")
 	})
+}
+function chicken_order_details(index) {
+	var order=adata.go[index]
+
+	var hd=[{cn:"Order No.",fn:"order_no"},{cn:"Qty",fn:"qty"},{cn:"No. of Orders",fn:"no"},{cn:"Total",fn:"total",ft:"money"},{cn:"Method",fn:"method"},{cn:"Time Ordered",fn:"order_time"},{cn:"Status",fn:"status"},{cn:"Description",fn:"message",cond:[{val:"",nval:"#NA",ct:'text'}]}]
+	gen_table_mobile(hd,[order],'chicken-order-details-div')
+	$("#chicken-order-details").modal("show")
 }
 
 
@@ -949,8 +938,188 @@ function upload_order_form() {
 		var ts=new Date()
 		$("#order-form-img").attr("src","/uploads/forms/form-"+adata.gon+"?ts="+ts)
 	})
-	
 }
 
 
+function wallet_div() {
+	var data={url:"/group",rq:"wallet-transactions"}
+	ajax_go(data,function (rst) {
+		load_wallet_transactions(rst)
+	})
+}
+function topup_div(argument) {
+	$("#topup-div").modal("show")
+}
+function topup_wallet(argument) {
+	var phone=$("#topup-phone").val()
+	var amount=$("#topup-amount").val()
+	var arr=[{fn:"Mobile Number",ft:"phone",val:phone},{fn:"Amount",val:amount}]
+	var vr=check_empty(arr)
+	if(!vr)
+		return 0;
+	var data={url:"/group",rq:"topup-wallet",phone:phone,amount:amount}
+	ajax_go(data,function (rst) {
+		$("#topup-div").modal("hide")
+		clear_fields()
+		load_wallet_transactions(rst)
 
+	})
+	
+}
+function load_wallet_transactions(rst) {
+	$(".db-wallet").text("UGX "+cx(rst.wallet))
+	var th=[{cn:"Transaction Date",fn:"tr"},{cn:"Transaction ID",fn:"trans_id"},{cn:"Type",fn:"type"},{cn:"Amount",fn:"amount",ft:"money"},{cn:"Description",fn:"description"},{cn:"Status",fn:"status"}]
+		gen_table(th,rst.wallet_transactions,'wallet-transactions-table','no-wallet-transactions')
+		$(".child-div").hide()
+		$("#wallet-div").show()
+}
+function change_pay_method(method) {
+	$("#pay-method-"+method).prop("checked",true)
+	if(method=="mm"){
+		$(".mm-el").show()
+	}
+	else{
+		$(".mm-el").hide()
+	}
+	adata.method=method
+}
+function close_cart(){
+	$("#cart-modal").modal("hide")
+	adata.cart_open=0
+	view_orders()
+}
+
+function complete_payment() {
+	
+		var group_id=adata.group_id
+		var phone=$("#mm-phone").val()
+		var method=adata.method
+		if(!method){
+			method="mm"
+		}
+		if(method=="mm"){
+			var arr=[{fn:"Phone Number",val:phone,ft:"phone"}]
+			var vr=check_empty(arr)
+			
+			if(!vr)
+				return 0;
+			
+		}
+		var data={group_id:group_id,url:"/group",rq:"add-order",member_id:[],qty:[],price:adata.settings.chicken_price,phone:phone,tamount:adata.ttotal,tqty:adata.tqty,method:method}
+		var cart=JSON.parse(window.localStorage.getItem("cart"))
+		
+		if(adata.rq=="retry-paying"){
+			//retrying payment
+			data.rq="retry-paying"
+			data.order_no=adata.order_no
+		}
+		else{
+			data.rq="add-order"
+			data.order_no=0;
+			for(var i=0;i<cart.length;i++){
+				data.member_id[i]=cart[i].member_id;
+				data.qty[i]=cart[i].qty;
+
+			}
+			data.no=cart.length
+		}
+		
+		
+		ajax_go(data,function (rst) {
+			
+			//display_succ("Order has been received")
+			$("#no-cart").text("")
+			window.localStorage.removeItem("cart")
+			cart=[]
+			$(".cart-div,.cart-btn").hide()
+			$("#cart-finished").show()
+			$("#order-status").text(rst.status)
+			$("#cart-close").show()
+			if(rst.order_err){
+				$("#order-err-div").show()
+				$("#order-err").text(rst.order_err)
+				$("#cart-retry").show()
+				adata.order_no=rst.order_no
+			}
+			else{
+				$("#cart-retry").hide()
+				$("#order-err-div").hide()
+			}
+			if(method=="mm"){
+
+				adata.cart_open=1
+				if(rst.order_err)
+					return 0
+				setTimeout(function() {
+					check_chicken_order_payment_status(rst.order_no,rst.phone)
+				}, 5000);
+			}
+			
+		})
+}
+
+function check_chicken_order_payment_status(order_no,phone){
+	if(adata.cart_open==0)
+		return 0;
+	var data={rq:"check-chicken-order-payment-status",order_no:order_no,phone:phone,url:"/group"}
+	$("#loading-text").text("Checking Order payment status...")
+	ajax_go(data,function (rst) {
+		$("#order-status").text(rst.status)
+
+		if(rst.status=="Pending Approval")
+		{
+			setTimeout(function() {
+				check_chicken_order_payment_status(order_no,phone)
+			}, 5000);
+
+		}
+		else{
+
+			if(rst.order_err){
+				$("#order-err-div").show()
+				$("#order-err").text(rst.order_err)
+				$("#cart-retry").show()
+			}
+			else{
+				$("#cart-retry").hide()
+				$("#order-err-div").hide()
+			}
+			adata.cart_open=0;
+		}
+	})
+}
+function checkout_btn(rq){
+	$(".cart-div,.cart-btn").hide()
+	$("#cart-checkout,#complete-payment-btn").show()
+	adata.rq=rq
+}
+function retry_paying(index){
+	var order=adata.go[index];
+	var tqty=order.qty
+	var ttotal=order.total;
+	var no=order.no;
+	adata.order_no=order.order_no
+
+	adata.rq="retry-paying"
+
+	adata.ttotal=ttotal;
+	adata.tqty=tqty
+	adata.no=no;
+
+	var method=order.method;
+	var phone=order.phone;
+	if(method=="Wallet"){
+		adata.method="wallet"
+	}
+	else{
+		$("#mm-phone").val(phone)
+		adata.method="mm"
+
+	}
+	change_pay_method(adata.method)
+	
+	$("#cart-modal").modal("show")
+	load_checkout_page(no,tqty,ttotal)
+	checkout_btn('retry-paying')
+
+}

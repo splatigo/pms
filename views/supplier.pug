@@ -30,8 +30,8 @@ block content
                             span(class="fa fa-outdent") 
                             span  Orders
                         div(class="dropdown-menu" aria-labelledby="a-orders")
-                            a(href="#" class='dropdown-item collapse-navbar' onclick="view_supply_orders('Out for Delivery')") Pending Orders
-                            a(href="#"  class='dropdown-item collapse-navbar' onclick="view_supply_orders('Delivered')") Delivered
+                            a(href="#" class='dropdown-item collapse-navbar' onclick="view_chicken_orders('Out for Delivery')") Pending Orders
+                            a(href="#"  class='dropdown-item collapse-navbar' onclick="view_chicken_orders('Delivered')") Delivered
                 ul(class="navbar-nav ml-auto")
                     li(class="nav-item dropdown user-li hd")
                         a(class="nav-link dropdown-toggle" href="#" id="a-user-options" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false")
@@ -44,7 +44,7 @@ block content
                     
     div(class="container")
         p
-        div(class="cd" id="dashboard")
+        div(class="child-div" id="dashboard")
             div(class="card card-prmary")
                 div(class="card-header bg-custom text-white") <span class='fa fa-dashboard'></span>  <span id="business-name"></span> / Dashboard
                 div(class="card-body")
@@ -68,7 +68,7 @@ block content
                                    
                                         span  Pending Orders
 
-                                div(class="card-body cb-link" onclick="view_supply_orders('Out for Delivery')")
+                                div(class="card-body cb-link" onclick="view_chicken_orders('Out for Delivery')")
                                     p(align='center')
                                         span(id="db-supply-orders-out-for-delivery")
 
@@ -80,10 +80,10 @@ block content
                                    
                                         span  Orders Delivered
 
-                                div(class="card-body cb-link" onclick="view_supply_orders('Delivered')")
+                                div(class="card-body cb-link" onclick="view_chicken_orders('Delivered')")
                                     p(align='center')
                                         span(id="db-supply-orders-delivered")
-        div(class="cd hd" id="supply-orders-div")
+        div(class="child-div hd" id="chicken-orders-div")
             div(class="card card-prmary")
                 div(class="card-header bg-custom text-white")
                     h5
@@ -93,10 +93,21 @@ block content
                     button(class="btn btn-primary" onclick="change_supply_orders_status('Delivered')" id="chx-status-btn") Mark as Delivered
                     p
                     div(class="table-responsive")
-                        table(id="supply-orders-table" class="table table-striped")
-                    p(class="alert alert-info hd" id="no-supply-orders") No supply orders in selected category
+                        table(id="chicken-orders-table" class="table table-striped")
+                    p(class="alert alert-info hd" id="no-chicken-orders") No chicken orders in selected category
         
-        div(class="cd hd" id="stock-div")
+        div(class="hd child-div" id="chicken-order-bd-div")
+            div(class="card card-prmary")
+                div(class="card-header bg-custom text-white") Chicken Order Breakdown
+                div(class="card-body")
+                    button(class="btn btn-primary" onclick="back('chicken-orders-div')")
+                        span(class="fa fa-arrow-circle-left") 
+                        span  Back
+                    p
+                    div(class="table-responsive")
+                        table(id="chicken-order-bd-table" class="table")
+                    p(id="no-chicken-orders-bd" class="alert alert-info hd") No chicken orders have been made yet
+        div(class="child-div hd" id="stock-div")
             div(class="card card-prmary")
                 div(class="card-header bg-custom text-white")
                     span Chicken Stock

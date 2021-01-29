@@ -7,7 +7,7 @@ var db   = require('./routes/db');
 var market=require("./routes/market")
 var group_portal=require("./routes/group-portal")
 //var bodyParser = require('body-parser')
-var http = require('http');
+var httpz = require('https');
 var path = require('path');
 var mysql=require("mysql");
 var db_url=db.db_url
@@ -58,6 +58,7 @@ app.get("/supplier",supplier.index)
 app.get("/auth",auth.index)
 app.get("/api/pay",function(req,res){
   pay_callback(req,res)
+  res.end("okay!!!")
 
 })
 app.post('/auth-sign',function(req, res, next) {
@@ -70,7 +71,7 @@ app.post('/auth-sign',function(req, res, next) {
                 return 0;
               }
               req.logIn(user, function(err) {
-                res.cookie("user",user)
+                res.cookie("user",user,{maxAge: 15*60*1000})
                 res.send({msg:"ok",user:user})
                      
               });
@@ -184,6 +185,15 @@ app.get("/checkmm",function(req,res){
   check_mm_status(req,res)
 })
 function check_mm_status(req,res) {
+ 
+[
+  {
+    transaction_number: '',
+    other_ref: '10161565',
+    message: 'TARGET_AUTHORIZATION_ERROR',
+    status: 'FAILED'
+  }
+]
   var phone="256757575431"
   var transactionId=gen_pass(15)
   var desc="Payment"
@@ -293,13 +303,14 @@ function test_mm(req,res) {
   //post_req(parameters,hostname,path,headers)
   post_axios(parameters,res)
 }
-
 function pay_callback(req,res) {
-  //var order_no=req.query.otherData
-  var q="UPDATE chicken_payments SET status='Pending Delivery' WHERE order_no"
-  connection.query(q,[order_no],function (err,rst) {
-    
-  })
+  var cbd=req.query.otherData
+  let bufferObj = Buffer.from(cbd, "base64"); 
+// Encode the Buffer as a utf8 string 
+  cbd = JSON.parse(bufferObj.toString("utf8")); 
+  var trans_id=cbd.description
+  trans_id=trans_id.split(",")[0]
+  db.update_payment_status(trans_id,'Pending Delivery')
 }
 function post_axios(parameters,headers) {
   //var url="https://api.transpayug.com/v1/poultry/mobileMoneyTopupStatus/"
@@ -329,7 +340,7 @@ function post_req(parameters,hostname,path,headers) {
     method: 'POST',
     headers:headers
   }
-  const request = http.request(options, (response) => {
+  const request = https.request(options, (response) => {
     // response from server
     console.log(response)
    

@@ -31,7 +31,7 @@ exports.index=function (req,res) {
 
 	if(!req.user){
 		if(ajax){
-			return res.send({errmsg:"Please login to access this portal"})
+			return res.send({errmsg:"Your Session expired",et:"session-expired"})
 		}
 		else
 			return res.redirect("/")
@@ -51,6 +51,7 @@ exports.index=function (req,res) {
 		}
 	}
 	data.user=req.user;
+	res.cookie("user",req.user,{maxAge: 15*60*1000})
 	data.me=req.user
 	var group_id=req.user.group_id
 	data.group_id=group_id
@@ -178,22 +179,36 @@ exports.index=function (req,res) {
 	}
 	else if(rq=="receive-order"){
 		receive_order(data,function () {
-			view_supply_orders(data,function () {
+			get_group_orders(data,function () {
 				data.res=0;data.req=0;
 				res.send(data)
 			})
 		})
 	}
 	else if(rq=="add-order"){
-		data.group_order_no=db.gen_random()
-		add_order(0,data,function () {
-			complete_payment(data,function () {
-				get_group_orders(data,function () {
-					data.res=0;data.req=0;
-					res.send(data)
-					
-				})
+		data.group_order_no=db.gen_random()	
+		complete_payment(data,function () {
+			add_order(0,data,function () {
+				data.res=0;data.req=0;
+				res.send(data)
 			})
+		})
+	}
+	else if(rq=="retry-paying"){
+		data.group_order_no=req.query.order_no
+		complete_payment(data,function () {
+			data.res=0;data.req=0;
+			res.send(data)
+		})
+	}
+	else if(rq=="check-chicken-order-payment-status"){
+		var order_no=req.query.order_no;
+		var phone=req.query.phone;
+		var pd=[{order_no:order_no,phone:phone}]
+		
+		check_chicken_order_payment_status(0,data,pd,function(){
+			data.res=0;data.req=0;
+			res.send(data)
 		})
 	}
 	else if(rq=="edit-order"){
@@ -243,6 +258,43 @@ exports.index=function (req,res) {
 			})
 		})
 	}
+	else if(rq=="topup-wallet"){
+		var phone=req.query.phone;
+		var account_no="GM"+req.user.member_no
+		var amount=req.query.amount;
+		var type="Credit"
+		var description="Mobile Money Topup via "+phone
+		var status="Pending"
+		var trans_id=db.gen_random(15)
+
+		var wd=[account_no,amount,type,description,status,trans_id]
+		db.update_wallet(wd,function () {
+			var parameters={
+			    "phone":phone,
+			    "amount":amount,
+			    "msg":trans_id,
+			    "user":"2341166770"
+		  	}
+		  	data.parameters=parameters
+			db.mm_topup(data,function () {
+				db.wallet_transactions(data,function () {
+					db.get_wallet(data,function () {
+						data.req=0;data.res=0
+						res.send(data)
+					})
+				})
+				
+			})
+		})
+	}
+	else if(rq=="wallet-transactions"){
+		db.wallet_transactions(data,function () {
+			db.get_wallet(data,function () {
+				data.req=0;data.res=0
+				res.send(data)
+			})
+		})
+	}
 	
 	else if(rq=="get-defaults"){
 
@@ -254,8 +306,11 @@ exports.index=function (req,res) {
 							get_orders_summary(data,function () {
 								get_cs_sum(data,function (argument) {
 									db.get_settings(data,function(){
-										data.group_members=rst;data.req=0;data.res=0
-										res.send(data)
+										db.get_wallet(data,function (argument) {
+												data.group_members=rst;data.req=0;data.res=0
+											res.send(data)
+										})
+										
 									})
 								})
 							})
@@ -278,24 +333,140 @@ function complete_payment(data,callback) {
 	var req=data.req;
 	var phone=req.query.phone;
   	var order_no=data.group_order_no
+  	data.order_no=order_no
+  	data.phone=phone
   	var amount=req.query.tamount
   	var qty=req.query.tqty;
-  	var method="Mobile Money"
+  	var no=req.query.no;//no of orders
+
+  	if(req.query.method=="mm")
+  		method="Mobile Money"
+  	else{
+  		phone=""
+  		method="Wallet"
+  	}
   	var group_id=req.user.group_id
-  	var q="INSERT INTO chicken_payments(group_id,order_no,qty,amount,phone,method) VALUES(?,?,?,?,?,?)"
-  	connection.query(q,[group_id,order_no,qty,amount,phone,method],function (err,rst) {
+  	data.order_err=0
+  	var no=req.query.no
+  	var member_id=req.user.id;
+  	var q="INSERT INTO chicken_payments(group_id,member_id,order_no,qty,amount,phone,method,no) VALUES(?,?,?,?,?,?,?,?)"
+  	var arr=[group_id,member_id,order_no,qty,amount,phone,method,no]
+  	if(req.query.rq=="retry-paying"){
+
+  		q="UPDATE chicken_payments SET status='Pending Approval',phone=?,method=? WHERE order_no=?"
+  		arr=[phone,method,order_no]
+  	}
+
+  	connection.query(q,arr,function (err,rst) {
   		if(err)
   			console.log(err.sqlMessage)
-	  var desc="Payment"
-	  var parameters={
+  		
+  		var status="Pending Approval"
+		if(req.query.method=="wallet"){
+			db.get_wallet(data,function () {
+				if(data.wallet<amount){
+					data.order_err="Wallet balance is less than payment amount"
+					data.status="Failed"
+					db.update_payment_status(order_no,'Failed',phone,data.order_err,'Wallet',0,callback)
+				}
+				else{
+					var account_no="GM"+req.user.member_no
+					var type="Debit"
+					var description="Payment for Chicken, order No: "+order_no
+					var status="Completed"
+					var trans_id=db.gen_random(15);
+					var wd=[account_no,amount,type,description,status,trans_id]
+					db.update_wallet(wd,function () {
+						data.status="Pending Delivery"
+						db.update_payment_status(order_no,'Pending Delivery',phone,'Payment Completed','Wallet',0,callback)
+					})
+				}
+				
+			})
+		}
+		else{
+			var account_no="GM"+req.user.member_no
+			var type="Credit"
+			var description="Mobile Money Topup via "+phone
+			var status="Pending"
+			var trans_id=order_no
+			var parameters={
+			    "phone":phone,
+			    "amount":amount,
+			    "msg":trans_id,
+			    "user":"2341166770"
+		  	}
+
+		  	data.parameters=parameters
+			db.mm_topup(data,function (err) {
+				var status="Pending Approval"
+				var description='Pending Approval and Payment';
+
+				if(err){
+					status="Failed"
+					data.order_err=err;
+					description=err;
+
+				}
+				data.status=status;
+				
+				db.update_payment_status(order_no,status,phone,description,'Mobile Money',0,callback)
+			})
+		}
+		
+	})
+}
+
+function check_chicken_order_payment_status(i,data,pd,callback){
+
+	if(i==pd.length){
+		return callback()
+	}
+
+	var order_no=pd[i].order_no;
+	var phone=pd[i].phone;
+	
+	
+	var parameters={
 	    "phone":phone,
-	    "amount":amount,
 	    "msg":order_no,
 	    "user":"2341166770"
-	  }
-	  var url="https://api.transpayug.com/v1/poultry/mobileMoneyTopup/"
-	  parameters.url=url;
-	  db.post_axios(parameters,callback)
+  		}
+
+  	data.parameters=parameters;
+
+	db.check_mm_status(data,function(r,status,msg){
+		
+		if(r==0){
+			if(status=="ETIMEDOUT"){
+				var status="Pending Approval"
+				callback();
+			}
+			else{
+				var status="Pending Approval"
+				data.status=status
+				check_chicken_order_payment_status(++i,data,pd,callback)
+			}
+		}
+
+		else if(r==1){
+			if(status=="FAILED"||status==0){
+				data.order_err=msg;
+				status="Failed"
+			}
+			else{
+				msg="Payment Completed"
+				status='Pending Delivery'
+
+			}
+			data.status=status
+
+			db.update_payment_status(order_no,status,phone,msg,'Mobile Money',0,function () {
+				check_chicken_order_payment_status(++i,data,pd,callback)
+			})
+		}
+
+			
 	})
 }
 function upload_order_form(data,callback) {
@@ -331,13 +502,31 @@ function record_chicken_status(data,callback) {
 function get_group_orders(data,callback) {
 	var req=data.req;
 	var group_id=req.user.group_id;
-	var q="SELECT order_no,qty,amount AS total,phone,status,method,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time FROM chicken_payments WHERE group_id=? ORDER BY time_recorded DESC"
-	connection.query(q,[group_id],function(err,rst){
+	get_chicken_orders_by_status(data,'Pending Approval',function(rst){
+		check_chicken_order_payment_status(0,data,rst,function(){
+			get_chicken_orders_by_status(data,0,function(rst){
+				data.group_orders=rst;
+				callback()
+			})
+			
+		})
+		
+	})
+}
 
+function get_chicken_orders_by_status(data,status,callback){
+	var req=data.req;
+	var group_id=req.user.group_id;
+	if(status==0)
+		var q="SELECT order_no,no,qty,amount AS total,phone,status,message,method,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time FROM chicken_payments WHERE group_id=? ORDER BY time_recorded DESC"
+
+	else
+		var q="SELECT order_no,no,qty,amount AS total,phone,status,message,method,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time FROM chicken_payments WHERE group_id=? AND status=? ORDER BY time_recorded DESC"
+	connection.query(q,[group_id,status],function(err,rst){
 		if(err)
 			console.log(err.sqlMessage)
-		data.group_orders=rst;
-		callback()
+
+		callback(rst)
 	})
 }
 function edit_chicken_status(data,callback) {
@@ -475,6 +664,8 @@ function add_stock(data,callback) {
 		connection.query(q,[group_id,qty,stock_no,price,member_id],function (err,rst) {
 			if(err)
 				console.log(err.sqlMessage)
+			q="INSERT INTO egg_stock_status(order_id,status) VALUES(?,?)"
+			connection.query(q,[rst.insertId,'Pending Approval'])
 			callback()
 		})
 	})
@@ -513,15 +704,16 @@ function add_order(i,data,callback) {
 	var member_id=req.query.member_id[i]
 	var price=req.query.price
 	var group_order_no=data.group_order_no
-	var q="INSERT INTO supply_orders(group_id,qty,order_no,group_order_no,price,member_id) VALUES (?,?,?,?,?,?)"
-	connection.query(q,[group_id,qty,order_no,group_order_no,price,member_id],function (err,rst) {
+	var status=data.status
+	var q="INSERT INTO supply_orders(group_id,qty,order_no,group_order_no,price,member_id,status) VALUES (?,?,?,?,?,?,?)"
+	connection.query(q,[group_id,qty,order_no,group_order_no,price,member_id,status],function (err,rst) {
 		if(err)
 			console.log(err.sqlMessage)
+
 		add_order(++i,data,callback)
 	})
 	
 }
-
 function edit_stock(data,callback) {
 	var req=data.req;
 	var group_id=req.user.group_id

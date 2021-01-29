@@ -42,7 +42,7 @@ block content
                                     br(class="menu-br") 
                                     span(class="menu-text")  Settings
                                 div(class="dropdown-menu dropdown-menu-right" aria-labelledby="menu")
-                
+                                    a(class="dropdown-item" href="#" onclick="wallet_div()") <i class='fa fa-money'></i> Wallet
                                     a(class="dropdown-item" href="#" onclick="view_profile()") <i class='fa fa-user'></i> Profile
                                     a(href="#" class="dropdown-item" onclick="reset_password_dl()") <i class='fa fa-key'></i> Reset Password
                                     a(class="dropdown-item confirm-axn" href="#" axn='signout') <i class='fa fa-sign-out'></i> Signout
@@ -64,6 +64,19 @@ block content
                                 div(class="card-body cb-link a-members")
                                     p(align='center' style="font-size:25px;")
                                         span(id="db-members-count")
+                        div(class="col mb-3")
+                            div(class="card")
+                                div(class="card-header bg-custom text-white")
+                                    p(align="center")
+                                        span(class="fa fa-group ")
+                                   
+                                        span  Wallet
+                                div(class="card-body")
+                                    p(align="center" style="font-size:25px;" class="cb-link" onclick="wallet_div()")
+                                        span(class="db-wallet")
+                                        br
+                                    
+
                         div(class="col mb-3")
                             div(class="card")
                                 div(class="card-header bg-custom text-white")
@@ -156,8 +169,7 @@ block content
             div(class="card card-prmary")
                 div(class="card-header bg-custom text-white") Group Members
                 div(class="card-body")
-                    div(class="table-responsive")
-                        table(id="members-table" class="table")
+                    div(id="members-table" class="table")
                     p(id="no-members" class="alert alert-info hd") No members added to this group yet
         
         div(class="hd child-div" id="stock-div")
@@ -171,8 +183,8 @@ block content
                 div(class="card-header bg-custom text-white") Eggs Stock
 
                 div(class="card-body")
-                    div(class="table-responsive")
-                        table(id="stock-table" class="table")
+                   
+                    div(id="stock-table")
                     p(id="no-stock" class="alert alert-info hd") No eggs stock has been added yet
         div(class="hd  child-div" id="chicken-status-div")
 
@@ -182,8 +194,8 @@ block content
                 div(class="card-header bg-custom text-white") Chicken Status
                 div(class="card-body")
                     p(style="font-size:10px") * [Laying],[Non-Laying], [Total]
-                    div(class="table-responsive")
-                        table(id="chicken-status-table" class="table table-striped")
+                  
+                    div(id="chicken-status-table")
                     p(id="no-chicken-status" class="alert alert-info hd") No status added
         div(class="modal fade" tabindex="-1" aria-labelledby="cs-modal" aria-hidden="true" id="cs-modal")
             div(class="modal-dialog" )
@@ -251,8 +263,10 @@ block content
                 div(class="card-header bg-custom text-white") Chicken Orders
 
                 div(class="card-body")
-                    div(class="table-responsive")
-                        table(id="gp-orders-table" class="table")
+                    p(align="right")
+                        button(class="btn btn-primary view-orders" ) <i class='fa fa-refresh'></i> Refresh
+                    
+                    div(id="gp-orders-table")
                     p(id="no-gp-orders" class="alert alert-info hd") No orders
         div(class="hd child-div" id="orders-div")
             div(class="card card-prmary")
@@ -261,9 +275,8 @@ block content
                     button(class="btn btn-primary" onclick="back('gp-orders-div')")
                         span(class="fa fa-arrow-circle-left") 
                         span  Back
-                    br
-                    div(class="table-responsive")
-                        table(id="orders-table" class="table")
+                    p
+                    div(id="orders-table")
                     p(id="no-orders" class="alert alert-info hd") No chicken orders have been made yet
         div(class="modal fade" tabindex="-1" aria-labelledby="order-form-modal" aria-hidden="true" id="order-form-modal")
             div(class="modal-dialog" )
@@ -328,7 +341,7 @@ block content
                                 label(class="col-sm-4 col-form-label")
                                 div(class="col-sm-8")
                                     button(type="button" class="btn btn-primary form-control" id="add-order-btn") Add to Cart
-        div(class="modal fade" tabindex="-1" aria-labelledby="cart-modal" aria-hidden="true" id="cart-modal")
+        div(class="modal fade" tabindex="-1" aria-labelledby="cart-modal" aria-hidden="true" id="cart-modal" data-backdrop="static")
             div(class="modal-dialog modal-lg modal-dialog-scrollable" )
                 div(class="modal-content")
                     div(class="modal-header")
@@ -336,30 +349,59 @@ block content
                         button(type="button" class="close" data-dismiss="modal" aria-label="Close")
                             span(aria-hidden="true") &times;
                     div(class="modal-body")
-                        div(id="cart-div")
-                            div(class="table-responsive")
-                           
-                                table(id="cart-table" class="table")
-                            div(id="empty-cart-div" style="text-align:center" class="hd")
+                        div(id="cart-div" class="cart-div")
+                            div(id="cart-table")
+                        div(id="empty-cart-div" style="text-align:center" class="cart-div hd")
                                 span(class="fa fa-shopping-cart")
                                 br
                                 p Cart is Empty
-                        div(id="cart-checkout" class="hd")
+                        div(id="cart-checkout" class="cart-div hd")
                             div(style="text-align:center")
                                 p(class="bld") Purchase Details
                                 p(id="purchase-details")
                                 p(class="bld") Total Amount
-                                p(id="purchase-amount")
+                                p
+                                    span UGX 
+                                    span(id="purchase-amount")
                             form
                                 div(class="form-group row")
-                                    label(class="col-sm-4 col-form-label") Mobile Number
+                                    label(class="col-sm-4 col-form-label bld") Payment Method
                                     div(class="col-sm-8")
-                                        input(type="text" class="form-control" id="mm-phone" placeholder="Phone")
+                                        table
+                                            tr
+                                                
+                                                td
+                                                    input(type="radio" checked  name="pay-method" id="pay-method-mm" onclick="change_pay_method('mm')")
+                                                td  Mobile Money
+                                                
 
-
+                                                td(style="padding-left:20px")
+                                                    input(type="radio"  name="pay-method" id="pay-method-wallet" onclick="change_pay_method('wallet')")
+                                                td  Wallet
+                                    label(class="col-sm-4 col-form-label mm-el bld") Mobile Number
+                                    div(class="col-sm-8")
+                                        div(id="mm-phone-div" class='mm-el')
+                                            input(type="text" class="form-control" id="mm-phone" placeholder="Phone")
+                        div(id="cart-finished" style="text-align:center" class="cart-div hd")
+                            img(src="img/ordered.png" style="width:100px")
+                            p(style="font-size:20") Order has been Received
+                            p(id="order-err-div") <span class="bld">Issue:</span> <span id="order-err" style="font-size:16;color:red"></span>
+                            p <span class="bld"> Status:</span> <span id="order-status"></span>
                     div(class="modal-footer" id='cart-footer')
-                        button(class="btn btn-primary" id="check-out-btn") Checkout
-                        button(class="btn btn-primary hd" id="complete-payment-btn") Complete Payment
+                        button(class="btn btn-primary cart-btn" id="check-out-btn" onclick="checkout_btn('add-order')") Checkout
+                        button(class="btn btn-primary hd cart-btn" id="complete-payment-btn" onclick="complete_payment()") Complete Payment
+                        button(class="btn btn-primary hd cart-btn" id="cart-retry" onclick="checkout_btn('retry-paying')") Retry
+                        button(class="btn btn-primary hd view-orders cart-btn" id="cart-close" onclick="close_cart()") Close
+
+        div(class="modal fade" tabindex="-1" aria-labelledby="chicken-order-details" aria-hidden="true" id="chicken-order-details" data-backdrop="static")
+            div(class="modal-dialog modal-lg modal-dialog-scrollable" )
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h5(class="modal-title" id="add-new-member-hdr") Chicken Order Details
+                        button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                    div(class="modal-body")
+                        div(id="chicken-order-details-div")
         div(class="modal fade" tabindex="-1" aria-labelledby="add-new-member-div" aria-hidden="true" id="add-new-member-div" data-backdrop="static")
             div(class="modal-dialog modal-lg modal-dialog-scrollable" )
                 div(class="modal-content")
@@ -595,6 +637,46 @@ block content
                                 label(class="col-sm-4 col-form-label")
                                 div(class="col-sm-8")
                                     button(type="button" class="btn btn-primary form-control" onclick="receive_order()") Confirm Receipt
+        div(class="hd child-div" id="wallet-div")
+            div(class="card card-prmary")
+                div(class="card-header bg-custom text-white") Wallet
+                div(class="card-body")
+                    button(class="btn btn-primary" onclick="back('dashboard')")
+                        span(class="fa fa-arrow-circle-left") 
+                        span  Back
+
+                    p(align="center" style="font-size:25px")
+                        span Acc/Bal: 
+                        span(class="db-wallet")
+                   
+                    
+                   
+                    div(id="wallet-transactions-table")
+                    p(id="no-wallet-transactions" class="alert alert-info hd") No transactions made on this wallet
+
+        div(class="modal fade" tabindex="-1" aria-labelledby="topup-div" aria-hidden="true" id="topup-div")
+            div(class="modal-dialog" )
+                div(class="modal-content")
+                    div(class="modal-header")
+                        h5(class="modal-title") Topup Wallet
+                        button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                            span(aria-hidden="true") &times;
+                    div(class="modal-body")
+                       form
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Phone Number
+                                div(class="col-sm-8")
+                                    input(type="number" class="form-control" id="topup-phone" placeholder="Phone")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label") Amount
+                                div(class="col-sm-8")
+                                    input(type="number" class="form-control" id="topup-amount" placeholder="Amount")
+                            div(class="form-group row")
+                                label(class="col-sm-4 col-form-label")
+                                div(class="col-sm-8")
+                                    button(type="button" class="btn btn-primary form-control" onclick="topup_wallet()") Confirm Topup
+                    
+
         
 
 

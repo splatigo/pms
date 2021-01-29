@@ -190,9 +190,7 @@ function add_group_member(data,callback) {
 			else
 				callback()
 			
-		})
-	
-	
+		})	
 }
 function edit_group_member(data,callback) {
 	var req=data.req;
@@ -509,12 +507,175 @@ function post_axios(parameters,callback) {
   axios
     .post(url, parameters,{headers:headers})
     .then(res => {
-      callback()
+      callback(0,res)
       
     })
     .catch(error => {
-      console.error(error.errno)
-      callback()
+      //console.error(error.errno)
+      callback(error,0)
     })
 }
 exports.post_axios=post_axios;
+
+function update_wallet(wd,callback) {
+	var q="INSERT INTO wallet (account_no,amount,type,description,status,trans_id) VALUES(?,?,?,?,?,?)"
+	connection.query(q,wd,function (err,rst) {
+		if(err)
+			console.log(err.sqlMessage)
+		if(callback)
+			callback()
+	})
+}
+exports.update_wallet=update_wallet;
+function get_wallet(data,callback) {
+	var user=data.req.user;
+	if(user.priv=="gm")
+		var account_no="GM"+data.req.user.member_no
+	if(user.priv=="supplier")
+		var account_no="SP"+data.req.user.supplier_no
+	var q="SELECT SUM(amount) AS amount,type FROM wallet WHERE account_no=? AND status='Completed' GROUP BY type ORDER BY type ASC"
+	connection.query(q,[account_no],function (err,rst) {
+		if(err)
+			return console.log(err.sqlMessage)
+		if(rst.length==0)
+			data.wallet=0;
+		else if(rst.length==1)
+			data.wallet=rst[0].amount;
+		else
+			data.wallet=rst[0].amount-rst[1].amount;
+		
+		callback()
+	})
+}
+exports.get_wallet=get_wallet;
+exports.wallet_transactions=function(data,callback){
+	var user=data.req.user;
+	if(user.priv=="gm")
+		var account_no="GM"+data.req.user.member_no
+	if(user.priv=="supplier")
+		var account_no="SP"+data.req.user.supplier_no
+	var q="SELECT *,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS tr FROM wallet WHERE account_no=? ORDER BY time_recorded DESC"
+	connection.query(q,[account_no],function (err,rst) {
+		if(err)
+			return console.log(err.sqlMessage)
+		data.wallet_transactions=rst;
+		callback()
+	})
+
+}
+
+function mm_topup(data,callback) {
+	var parameters=data.parameters
+  var url="https://api.transpayug.com/v1/poultry/mobileMoneyTopup/"
+  parameters.url=url;
+  var phone=parameters.phone;
+  parameters.phone="256"+phone.substring(1,phone.length)
+  post_axios(parameters,function (err,rst) {
+  	var errmsg=0
+  	if(err){
+  		errmsg="Unable to process mobile money payment"
+  	}
+  	if(rst)
+  	{
+  		
+  		if(rst.data.data.status=="error"){
+  			if(rst.data.data.msg=="Unrecogonised phone number"){
+  				errmsg="Unable to process mobile money payment, incorrect phone number"
+  			}
+  			else{
+  				errmsg="Unable to process mobile money payment"
+  			}
+  		}
+  	}
+  	callback(errmsg)
+  })
+}
+exports.mm_topup=mm_topup
+
+
+
+var check_mm_status=function(data,callback) {
+  var parameters=data.parameters
+  var url="https://api.transpayug.com/v1/poultry/mobileMoneyTopupStatus/"
+  parameters.url=url;
+  var phone=parameters.phone;
+  
+  parameters.phone="256"+phone.substring(1,phone.length)
+  var headers={
+      'Content-Type': 'application/json',
+      'Content-Length': JSON.stringify(parameters).length
+  }
+  post_axios(parameters,function(err,rst){
+
+  	if(err){
+  		if(err.errno=="ETIMEDOUT"){
+  			var msg="Request timed out"
+  		}
+  		else
+  			var msg=err.errno
+
+  		return callback(0,'ETIMEDOUT',msg)
+  	}
+  	
+  	var rdata=rst.data.data.data
+
+  	if(rdata.length){
+  		
+  		var status=rdata[rdata.length-1].status;
+  		var msg=rdata[rdata.length-1].message
+  		if(msg=="TARGET_AUTHORIZATION_ERROR")
+  			msg="Approval not made from phone"
+  	}
+ 	else
+ 		status=0
+  	if(status=="TOPUP-COMPLETED"){
+  		callback(1,status,msg)
+  	}
+  	else if(status=="FAILED"||status==0){
+  		callback(1,status,msg)
+  	}
+  	else if(status=="INPROCESS"){
+  		callback(0,status,msg)
+  	}
+  	else{
+
+  		callback(0,0,0)
+  	}
+  })
+ 
+}
+
+var parameters={
+    "phone":"0757575431",
+    "msg":"7147217421",
+    "user":"2341166770"
+}
+var data={parameters:parameters}
+//check_mm_status(data,function(){
+
+//})
+exports.check_mm_status=check_mm_status
+exports.update_payment_status=function (order_no,status,phone,message,method,supplier_id,callback) {
+	var q="UPDATE chicken_payments SET status=?,message=? WHERE order_no=?"
+	var arr=[status,message,order_no]
+	if(supplier_id){
+		q="UPDATE chicken_payments SET status=?,message=?,supplier_id=? WHERE order_no=?"
+		arr=[status,message,supplier_id,order_no]
+	}
+  connection.query(q,arr,function () {
+    q="UPDATE supply_orders SET status=? WHERE group_order_no=?"
+    connection.query(q,[status,order_no],function(){
+      q="SELECT *FROM chicken_payments WHERE order_no=?"
+      connection.query(q,[order_no],function (err,rst) {
+      	var order_id=rst[0].id;
+        var q="INSERT INTO supply_order_status (order_id,status,phone,message,method) VALUES (?,?,?,?,?)"
+        
+       	connection.query(q,[order_id,status,phone,message,method])
+        if(callback)
+        	callback()
+      })
+      
+    })
+  })
+}
+
