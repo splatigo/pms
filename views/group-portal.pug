@@ -29,7 +29,7 @@ block content
                             span(class="fa fa-paw menu-icon")
                             br(class="menu-br")
                             span(class="menu-text")  Status
-                        td(class="menu-item view-cart" style="text-align:right;")
+                        td(class="menu-item view-cart leader-item" style="text-align:right;")
                             div(style="padding-right:10px")
                                 span(class="fa fa-shopping-cart menu-icon")
                                 span(class="badge badge-danger" id="no-cart")
@@ -173,7 +173,7 @@ block content
                     p(id="no-members" class="alert alert-info hd") No members added to this group yet
         
         div(class="hd child-div" id="stock-div")
-            table
+            table(class="leader-item")
                 tr
                     td
                         button(class="btn btn-primary a-add-stock") <i class="fa fa-plus"></i> New Eggs Stock
@@ -212,36 +212,36 @@ block content
                                     table(class="100p")
                                         tr
                                             td
-                                                input(type="number" class="form-control" id="cs-healthy" placeholder="L")
+                                                input(type="number" class="form-control" id="cs-healthy" placeholder="Laying")
                                             td
-                                                input(type="number" class="form-control" id="cs-healthy-nl" placeholder="NL")
+                                                input(type="number" class="form-control" id="cs-healthy-nl" placeholder="Non-Laying")
                             div(class="form-group row")
                                 label(class="col-sm-4 col-form-label") No. of Sick
                                 div(class="col-sm-8")
                                      table(class="100p")
                                         tr
                                             td
-                                                input(type="number" class="form-control" id="cs-sick" placeholder="L")
+                                                input(type="number" class="form-control" id="cs-sick" placeholder="Laying")
                                             td
-                                                input(type="number" class="form-control" id="cs-sick-nl" placeholder="NL")
+                                                input(type="number" class="form-control" id="cs-sick-nl" placeholder="Non-Laying")
                             div(class="form-group row")
                                 label(class="col-sm-4 col-form-label") No. of Dead
                                 div(class="col-sm-8")
                                     table(class="100p")
                                         tr
                                             td
-                                                input(type="number" class="form-control" id="cs-dead" placeholder="L")
+                                                input(type="number" class="form-control" id="cs-dead" placeholder="Laying")
                                             td
-                                                input(type="number" class="form-control" id="cs-dead-nl" placeholder="NL")
+                                                input(type="number" class="form-control" id="cs-dead-nl" placeholder="Non-Laying")
                             div(class="form-group row")
                                 label(class="col-sm-4 col-form-label") No. Sold off
                                 div(class="col-sm-8")
                                     table(class="100p")
                                         tr
                                             td
-                                                input(type="number" class="form-control" id="cs-sold" placeholder="L" )
+                                                input(type="number" class="form-control" id="cs-sold" placeholder="Laying" )
                                             td
-                                                input(type="number" class="form-control" id="cs-sold-nl" placeholder="NL" value="0" readonly)
+                                                input(type="hidden" class="form-control" id="cs-sold-nl" value="0")
                             div(class="form-group row")
                                 label(class="col-sm-4 col-form-label leader-item") Member
                                 div(class="col-sm-8")
@@ -632,7 +632,7 @@ block content
                             div(class="form-group row")
                                 label(class="col-sm-4 col-form-label") Age in Days
                                 div(class="col-sm-8")
-                                    input(type="number" class="form-control" id="r-age" placeholder="Quantity")
+                                    input(type="number" class="form-control" id="r-age")
                             div(class="form-group row")
                                 label(class="col-sm-4 col-form-label")
                                 div(class="col-sm-8")

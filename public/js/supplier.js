@@ -31,30 +31,30 @@ function get_defaults() {
 		{cn:"Parish",fn:"parish"},{cn:"Village",fn:"village"},
 		{cn:"Address",fn:"address"}]
 		load_profile(rst.me,clms)
-		load_supply_orders_sum(rst.supply_orders_sum)
+		load_chicken_orders_sum(rst.chicken_orders_sum)
 		load_stock_sum(rst.stock_sum)
 		$(".child-div").hide()
 		$("#dashboard").show()
 	})
 }
 
-function load_supply_orders_sum(stock_sum) {
-	console.log(stock_sum)
-	$("#db-supply-orders-out-for-delivery").html("0 Orders<hr> 0 Chicks<hr>UGX 0")
-	$("#db-supply-orders-delivered").html("0 Orders<hr>0 Chicks <hr>UGX 0")
+function load_chicken_orders_sum(stock_sum) {
+	
+	$("#db-chicken-orders-out-for-delivery").html("0 Orders<hr> 0 Chicks<hr>UGX 0")
+	$("#db-chicken-orders-delivered").html("0 Orders<hr>0 Chicks <hr>UGX 0")
 	for(var i=0;i<stock_sum.length;i++){
 		var amount=cx(stock_sum[i].amount)
 		var qty=cx(stock_sum[i].qty)
 		var no=stock_sum[i].no
 		if(stock_sum[i].status=="Out for Delivery")
-			$("#db-supply-orders-out-for-delivery").html(no+" Orders <hr>"+qty+" Chicks <hr>UGX "+ amount)
+			$("#db-chicken-orders-out-for-delivery").html(no+" Orders <hr>"+qty+" Chicks <hr>UGX "+ amount)
 		if(stock_sum[i].status=="Delivered")
-			$("#db-supply-orders-delivered").html(no+" Orders <hr>"+qty+" Chicks  <hr>UGX "+ amount)
+			$("#db-chicken-orders-delivered").html(no+" Orders <hr>"+qty+" Chicks  <hr>UGX "+ amount)
 	}
 }
 function load_stock_sum(rs) {
 	var rx=""
-	var rb=["Under Brooding","Ready for Sale","Sold Off"]
+	var rb=["Under Brooding","Ready for Sale","Sold-off"]
 	for(var i=0;i<rb.length;i++){
 		var status=rb[i]
 		var qty=0;
@@ -69,9 +69,9 @@ function load_stock_sum(rs) {
 	}
 	$("#db-stock").html(rx)
 }
-function change_supply_orders_status(status) {
+function change_chicken_orders_status(status) {
 	var oid=[];var k=0; //order id ; oid
-	$(".supply-orders-status-cb").each(function () {
+	$(".chicken-orders-status-cb").each(function () {
 		var val=$(this).val()
 		if(this.checked==true){
 			oid[k++]=val;
@@ -79,17 +79,14 @@ function change_supply_orders_status(status) {
 	})
 	if(oid.length==0)
 		return display_err("No order item selected",5000)
-	var data={url:"/supplier",rq:"change-supply-order-status",status:status,oid:oid}
-	if(status=="Out for Delivery"){
-		return $("#assign-supplier-div").modal("show")
-	}
+	var data={url:"/supplier",rq:"change-chicken-order-status",status:status,oid:oid}
 	ajax_go(data,function (rst) {
 		var orders=rst.orders;
 		if(data.status=="Out for Delivery")
 			xstatus="Pending Orders"
 		else
 			xstatus="Delivered"
-		$("#supply-orders-curr-status").text(" "+xstatus)
+		$("#chicken-orders-curr-status").text(" "+xstatus)
 		load_chicken_orders(orders,status)
 	})
 
@@ -99,62 +96,32 @@ function view_chicken_orders(status){
 	var data={url:"/supplier",rq:"get-chicken-orders",status:status}
 	ajax_go(data,function (rst) {
 		if(data.status=="Out for Delivery")
-			xstatus="Pending Orders"
+			xstatus="Pending Delivery"
 		else
 			xstatus="Delivered"
-		$("#supply-orders-curr-status").text(" "+xstatus)
+		$("#chicken-orders-curr-status").text(" "+xstatus)
 		var orders=rst.orders;
 		load_chicken_orders(orders,status)
 		
 	})
-}
-function load_supply_orders_or(orders,status) {
-	$(".child-div").hide()
-	$("#supply-orders-div").show()
-	if(orders.length==0){
-		$("#supply-orders-table").hide()
-		$("#no-supply-orders").show()
-		$("#chx-status-btn").hide()
-	}
-	else{
-		$("#no-supply-orders").hide()
-		$("#supply-orders-table").show()
-		$("#chx-status-btn").show()
-	}
-	if(status=="Delivered"){
-		$("#chx-status-btn").hide()
-	}
-	var tr="<thead><tr><th></th><th>Order No.</th> <th>Group</th> <th>Customer</th><th>Contact</th><th>Quantity</th><th>Amount</th><th>Ordered on</th></tr></thead><tbody>"
-	for(var i=0;i<orders.length;i++){
-		var order_no=orders[i].order_no
-		var id=orders[i].id;
-		var group_name=orders[i].group_name
-		var qty=orders[i].qty
-		var amount=orders[i].amount;
-		order_time=orders[i].order_time;
-		var member_name=orders[i].member_name;
-		var member_phone=orders[i].member_phone
-		tr+="<tr><td><input type='checkbox' value="+id+" class='tb supply-orders-status-cb'></td></td> <td>"+order_no+"</td> <td>"+group_name+"</td><td>"+member_name+"</td> <td>"+member_phone+"</td><td>"+qty+" Chicks</td><td>"+cx(amount)+"</td><td>"+order_time+"</td></tr>"
-	}
-	tr+="</tbody>"
-	$("#supply-orders-table").html(tr)
 }
 
 function load_chicken_orders(orders) {
 	adata.go=orders
 	$(".child-div").hide()
 	$("#chicken-orders-div").show()
+	if(orders.length==0)
+		$("#change-chicken-order-status-btn").hide()
+	else
+		$("#change-chicken-order-status-btn").show()
 	var th=[]
-	th[th.length]={cn:"",ft:"cb",cl:"tb supply-orders-status-cb"}
+	th[th.length]={cn:"",ft:"cb",cl:"tb chicken-orders-status-cb",fn:"order_no"}
 	th[th.length]={cn:"Order No",fn:"order_no"}
 	th[th.length]={cn:"Group",fn:"group_name"}
 	th[th.length]={cn:"Qty",fn:"qty"}
 	th[th.length]={cn:"Amount",fn:"amount",ft:"money"}
 	th[th.length]={cn:"Payment Method",fn:"method"}
 	th[th.length]={cn:"Payment Phone",fn:"phone"}
-	th[th.length]={cn:"Status",fn:"status"}
-	if(orders.length&&orders[0].supplier)
-		th[th.length]={cn:"Supplier",fn:"supplier"}
 	th[th.length]={cn:"Ordered on",fn:"order_time"}
 	gen_table(th,orders,"chicken-orders-table","no-chicken-orders")
 }
@@ -191,22 +158,23 @@ function new_stock_dl(){
 function load_stock(rs){
 	//cn; column name
 	adata.stock=rs;
-	var hd=[{cn:"#",ft:"serial"},{cn:"Stock No.",fn:"stock_no"},{cn:"Qty",fn:"qty"},{cn:"Age",fn:"age"},{cn:"Status",fn:"status"},{cn:"Time Recorded",fn:"tr"},{cn:"Options",ft:"options"}]
-	var options=[{method:"edit_stock_dl",text:"Edit"},{method:"Mark as Sold Off"},{method:"delete_stock",text:"Delete"}]
+	var hd=[{cn:"Stock No.",fn:"stock_no"},{cn:"Qty",fn:"qty"},{cn:"Age",fn:"age"},{cn:"Status",fn:"status"},{cn:"Time Recorded",fn:"tr"},{cn:"Options",ft:"options"}]
+	var options=[{method:"edit_stock_dl",text:"Edit"},{text:"Mark as Sold-off",method:"mark_as_sold_off",fn:"id"},{method:"delete_stock",text:"Delete",fn:"id"}]
 	for(var i=0;i<rs.length;i++){
 		var age=rs[i].age;
 
 		if(age==0)
 			age="Less than a day old"
-		if(age==1)
+		else if(age==1)
 			age="1 Day old"
 		else
 			age=age+" days"
 		rs[i].age=age
 		var status=rs[i].status
-		if(age>60&&status!="Sold Off")
+		if(age>60&&status!="Sold-off")
 			rs[i].status="Ready for Sale"
 	}
+
 	gen_table(hd,rs,"stock-table","no-stock",options)
 }
 function add_stock(){
@@ -223,9 +191,9 @@ function add_stock(){
 }
 
 
-function delete_stock(i) {
-	var id=adata.stock[i].id;
-	var data={rq:"delete-stock",url:"/supplier",id:id}
+function delete_stock(id) {
+	
+	var data={rq:"change-chicken-stock-status",url:"/supplier",id:id,status:"Deleted"}
 	var cfm=confirm("Are you sure you want to remove this entry?")
 	if(!cfm)
 		return 0;
@@ -244,4 +212,14 @@ function edit_stock_dl(i) {
 	$("#stock-hdr").text("Update Stock")
 	$("#stock-qty").val(qty)
 	$("#new-stock-div").modal("show")
+}
+function mark_as_sold_off(id) {
+	var data={rq:"change-chicken-stock-status",url:"/supplier",id:id,status:"Sold-off"}
+	var cfm=confirm("Are you sure you want to mark this as Sold-off?")
+	if(!cfm)
+		return 0;
+	ajax_go(data,function(rst){
+		clear_fields()
+		load_stock(rst.stock)
+	})
 }

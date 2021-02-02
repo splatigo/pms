@@ -652,23 +652,22 @@ var parameters={
 }
 var data={parameters:parameters}
 //check_mm_status(data,function(){
-
 //})
 exports.check_mm_status=check_mm_status
-exports.update_payment_status=function (order_no,status,phone,message,method,supplier_id,callback) {
-	var q="UPDATE chicken_payments SET status=?,message=? WHERE order_no=?"
+exports.update_chicken_order_status=function (order_no,status,phone,message,method,supplier_id,callback) {
+	var q="UPDATE chicken_orders SET status=?,message=? WHERE order_no=?"
 	var arr=[status,message,order_no]
 	if(supplier_id){
-		q="UPDATE chicken_payments SET status=?,message=?,supplier_id=? WHERE order_no=?"
+		q="UPDATE chicken_orders SET status=?,message=?,supplier_id=? WHERE order_no=?"
 		arr=[status,message,supplier_id,order_no]
 	}
   connection.query(q,arr,function () {
-    q="UPDATE supply_orders SET status=? WHERE group_order_no=?"
+    q="UPDATE chicken_orders_bd SET status=? WHERE group_order_no=?"
     connection.query(q,[status,order_no],function(){
-      q="SELECT *FROM chicken_payments WHERE order_no=?"
+      q="SELECT *FROM chicken_orders WHERE order_no=?"
       connection.query(q,[order_no],function (err,rst) {
       	var order_id=rst[0].id;
-        var q="INSERT INTO supply_order_status (order_id,status,phone,message,method) VALUES (?,?,?,?,?)"
+        var q="INSERT INTO chicken_orders_status (order_id,status,phone,message,method) VALUES (?,?,?,?,?)"
         
        	connection.query(q,[order_id,status,phone,message,method])
         if(callback)

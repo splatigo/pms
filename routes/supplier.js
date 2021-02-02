@@ -63,23 +63,17 @@ exports.index=function (req,res) {
 			res.send(data)
 		})
 	}
-	else if(rq=="get-chicken-order-bd"){
-		get_chicken_order_bd(data,function () {
-			data.res=0;data.req=0;
-			res.send(data)
-		})
-	}
 	else if(rq=="add-stock"){
 		add_stock(data,function(){
-			get_stock(data,function (argument) {
+			get_stock(data,function () {
 				data.res=0;data.req=0;
 				res.send(data)
 			})
 		})
 	}
-	else if(rq=="delete-stock"){
-		delete_stock(data,function(){
-			get_stock(data,function (argument) {
+	else if(rq=="change-chicken-stock-status"){
+		change_chicken_stock_status(data,function(){
+			get_stock(data,function () {
 				data.res=0;data.req=0;
 				res.send(data)
 			})
@@ -99,9 +93,9 @@ exports.index=function (req,res) {
 			res.send(data)
 		})
 	}
-	else if(rq=="change-supply-order-status"){
-		change_supply_orders_status(0,data,function () {
-			get_supply_orders(data,function () {
+	else if(rq=="change-chicken-order-status"){
+		change_chicken_order_status(0,data,function () {
+			get_chicken_orders(data,function () {
 				data.res=0;data.req=0;
 				res.send(data)
 			})
@@ -113,7 +107,7 @@ exports.index=function (req,res) {
 
 function get_dashboard_data(data,callback) {
 	
-	get_supply_orders_summary(data,function (argument) {
+	get_chicken_orders_summary(data,function (argument) {
 		get_stock_sum(data,function () {
 			callback()
 		})
@@ -122,7 +116,7 @@ function get_dashboard_data(data,callback) {
 
 }
 
-function change_supply_orders_status(i,data,callback) {
+function change_chicken_order_status(i,data,callback) {
 	var req=data.req;
 	var oid=req.query.oid
 	if(i==oid.length)
@@ -131,32 +125,23 @@ function change_supply_orders_status(i,data,callback) {
 	var status=req.query.status;
 	var id=oid[i]
 	var supplier_id=req.user.id
-	if(supplier_id){
-		supplier_id=supplier_id
-		var q="UPDATE chicken_payments SET status=?,supplier_id=? WHERE id=?"
-		var arr=[status,supplier_id,id]
-	}
-	else{
-		var q="UPDATE chicken_payments SET status=? WHERE id=?"
-		var arr=[status,id]
-	}
-	connection.query(q,arr,function (err,rst) {
-		if(err)
-			console.log(err)
-		var q="INSERT INTO supply_order_status (order_id,status) VALUES (?,?)"
-		connection.query(q,[id,status])
-		change_supply_orders_status(++i,data,callback)
+	var order_no=id;
+	var phone=""
+	var message=status
+	var method=""
+	db.update_chicken_order_status(order_no,status,phone,message,method,supplier_id,function(){
+		change_chicken_order_status(++i,data,callback)
 	})
+
 }
-function get_supply_orders_summary(data,callback) {
+function get_chicken_orders_summary(data,callback) {
 	var req=data.req;
 	var supplier_id=req.user.id;
-	var q="SELECT SUM(amount) AS amount,SUM(qty) AS qty,count(*) AS no,status FROM chicken_payments WHERE supplier_id=? GROUP BY status"
+	var q="SELECT SUM(amount) AS amount,SUM(qty) AS qty,count(*) AS no,status FROM chicken_orders WHERE supplier_id=? GROUP BY status"
 	connection.query(q,[supplier_id],function (err,rst) {
 		if(err)
 			console.log(err)
-		data.supply_orders_sum=rst;
-
+		data.chicken_orders_sum=rst;
 		callback()
 	})
 }
@@ -165,38 +150,25 @@ function get_chicken_orders(data,callback) {
 	var req=data.req;
 	var status=req.query.status
 	var supplier_id=req.user.id;
-
-	var q="SELECT chicken_payments.id,order_no,group_name,group_no,groups.id AS group_id,qty,amount,phone,method,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded,status FROM chicken_payments,groups WHERE chicken_payments.group_id=groups.id AND chicken_payments.status=? AND supplier_id=? ORDER BY time_recorded DESC"
+	var q="SELECT chicken_orders.id,order_no,group_name,group_no,groups.id AS group_id,qty,amount,phone,method,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,time_recorded,status FROM chicken_orders,groups WHERE chicken_orders.group_id=groups.id AND chicken_orders.status=? AND supplier_id=? ORDER BY time_recorded DESC"
 	var arr=[status,supplier_id]
 	connection.query(q,arr,function (err,rst) {
 		if(err)
 			console.log(err.sqlMessage)
 		data.orders=rst;
+		callback()
+	})
+}
 
-		callback()
-	})
-}
-function get_chicken_order_bd(data,callback) {
-	var req=data.req;
-	var group_id=req.query.group_id
-	var group_order_no=req.query.group_order_no
-	var q="SELECT supply_orders.id,order_no,supply_orders.status,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS time_recorded,time_recorded AS ordered_on,qty,(price*qty) AS amount,name AS member_name,DATE_FORMAT(time_received,'%e %b %Y %l:%i %p') AS tr,age,DATEDIFF(DATE_ADD(now(),INTERVAL 8 HOUR),time_received) AS age2  FROM supply_orders,group_members WHERE group_members.group_id=? AND group_members.id=supply_orders.member_id AND group_order_no=? ORDER BY ordered_on DESC"
-		var arr=[group_id,group_order_no]
-	connection.query(q,arr,function (err,rst) {
-		if(err)
-			return console.log(err.sqlMessage)
-		data.orders_bd=rst;
-		callback()
-	})
-}
 function get_stock(data,callback) {
 	var req=data.req;
 	var supplier_id=req.user.id
-	var q="SELECT id,stock_no,qty,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS tr,DATEDIFF(now(),time_recorded) AS age,status FROM chicken_stock WHERE supplier_id=? ORDER BY time_recorded DESC"
+	var q="SELECT id,stock_no,qty,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS tr,DATEDIFF(now(),time_recorded) AS age,status FROM chicken_stock WHERE supplier_id=? AND status!='Deleted' ORDER BY time_recorded DESC"
 	connection.query(q,[supplier_id],function (err,rst) {
 		data.stock=rst;
 		if(err)
 			return console.log(err.sqlMessage)
+
 		
 		callback()
 	})
@@ -228,23 +200,31 @@ function add_stock(data,callback){
 	var supplier_id=req.user.id
 	var stock_no=db.gen_random()
 	var qty=req.query.qty;
-
-	var q="INSERT INTO chicken_stock(stock_no,supplier_id,qty) VALUES(?,?,?)"
-	connection.query(q,[stock_no,supplier_id,qty],function(err,rst){
+	var status="Under Brooding"
+	var q="INSERT INTO chicken_stock(stock_no,supplier_id,qty,status) VALUES(?,?,?,?)"
+	connection.query(q,[stock_no,supplier_id,qty,status],function(err,rst){
 		if(err)
 			return console.log(err.sqlMessage)
 		callback()
 	})
 }
-function delete_stock(data,callback) {
+function change_chicken_stock_status(data,callback) {
 	var req=data.req;
 	var id=req.query.id;
-	var q="DELETE FROM chicken_stock WHERE id=?"
-	connection.query(q,[id],function (err,rst) {
-		// body...
+	var status=req.query.status
+
+	var q="UPDATE chicken_stock SET status=? WHERE id=?"
+	connection.query(q,[status,id],function (err,rst) {
 		if(err)
 			return console.log(err.sqlMessage)
-		callback()
+		q="INSERT INTO chicken_stock_status(stock_id,status) VALUES(?,?)"
+		connection.query(q,[id,status],function (err,rst) {
+			if(err)
+				console.log(err.sqlMessage,"222")
+			else
+				callback()
+		})
+		
 	})
 }
 function edit_stock(data,callback) {

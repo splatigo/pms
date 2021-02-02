@@ -390,7 +390,7 @@ function ajax_file(data,data2,callback) {
               }, 1000);
               setTimeout(function() {}, 2000);
                 //ajax_(data,callback)
-                //display_err("Unable to connect to server, you are probably offline",3000)
+                display_err("Unable to connect to server, you are probably offline",3000)
             }
 
     });
@@ -774,29 +774,85 @@ function gen_table_mobile(hd,rs,tid,nid,options){
   }
   $("#"+tid).html(div)
 }
+function convert_from_days(days) {
+  if(days<1)
+    age="Less than a day old"
+  else if(days==1)
+    age="1 day old"
 
+  else if(days<7)
+    age=days+" days"
+  else if(days<=28)
+  {
+    var weeks=Math.trunc(days/7)
+    age=weeks+" weeks";
+    if(weeks==1)
+      age=weeks+" week"
+    days=days%7
+    if(days>0){
+      if(days==1)
+        age=age+" "+days+" day"
+      else
+        age=age+" "+days+" days"
+    }
+  }
+  else if(days>28){
+    var months=Math.trunc(days/28)
+    age=months+" months"
+    if(months==1)
+      age=months+" month"
+    days=days%28
+    if(days>0){
+      if(days==1)
+        age=age+" "+days+" day"
+      else
+        age=age+" "+days+" days"
+      var weeks=Math.trunc(days/7)
+      if(weeks==1){
+        age=months+" months"
+         if(months==1)
+           age=months+" month"
+        age=age+" "+weeks+" week"
+      }
+      else{
+        age=months+" months"
+         if(months==1)
+            age=months+" month"
+        age=age+" "+weeks+" weeks";
+      }
+      days=days%7
+      if(days>0){
+        age=age+" "+days+" days"
+      }
+    }
+  }
+  return age;
+}
 function load_options(arr,index,rs) {
   var op="<div class='btn-group dropleft' >"
     op+="<button class='btn btn-primary dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'><i class='fa fa-bars'></i></button>"
     op+=" <div class='dropdown-menu'>"
     for(var i=0;i<arr.length;i++){
+
       var cond=arr[i].cond;
+      if(arr[i].fn){
+
+          index2=rs[index][arr[i].fn]
+        }
+        else
+          index2=index
       if(cond){
 
         for(var j=0;j<cond.length;j++){
           var fv=rs[index][cond[j].fn]
-          
           if(cond[j].val==fv){
-            op+="<a class='dropdown-item' href='#' onclick='"+arr[i].method+"("+index+")'>"+arr[i].text+"</a>"
+            op+="<a class='dropdown-item' href='#' onclick='"+arr[i].method+"("+index2+")'>"+arr[i].text+"</a>"
           }
         }
       }
       else{
-        if(arr[i].fn){
-
-          index=rs[index][arr[i].fn]
-        }
-        op+="<a class='dropdown-item' href='#' onclick='"+arr[i].method+"("+index+")'>"+arr[i].text+"</a>"
+        
+        op+="<a class='dropdown-item' href='#' onclick='"+arr[i].method+"("+index2+")'>"+arr[i].text+"</a>"
       }
     }
     op+="</div></div>"

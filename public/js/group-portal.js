@@ -254,18 +254,6 @@ $(function () {
 		adata.rq="add-order"
 		clear_fields()
 	})
-	$(".a-order-forms").click(function () {
-		$(".child-div").hide()
-		$("#order-forms-div").show()
-		var data={url:"/group",rq:"get-group-orders"}
-
-		ajax_go(data,function (rst) {
-			
-			
-		})
-	
-	})
-	
 	$("#add-stock-btn").click(function () {
 		var group_id=adata.group_id
 		if(adata.me.role=="Chairperson")
@@ -364,7 +352,7 @@ $(function () {
 		ajax_go(data,function (rst) {
 			$("#edit-order-div").modal("hide")
 			display_succ("Order Item updated successfully")
-			var es=rst.orders;
+			var es=rst.chicken_orders;
 			load_orders(es)
 
 		})
@@ -376,7 +364,7 @@ $(function () {
 
 	})
 	$(".view-orders").click(function () {
-		view_orders()
+		view_chicken_orders()
 
 	})
 	$(".a-members").click(function () {
@@ -415,86 +403,7 @@ function load_egg_stock(es) {
 	}
 	gen_table(hd,es,"stock-table","no-stock",options)
 }
-function load_orders_by_order_no(es) {
-	adata.orders=es;
-	if(!es.length)
-	{
-		$("#no-orders").show()
-		$("#orders-table").hide()
-		return 0
-	}
-	$("#no-orders").hide()
-	$("#orders-table").show()
-	var tr="<thead><tr><th>Order No</th><th>Recorded on</th><th>Quantity</th><th>Amount</th><th class='leader-item'>Member</th><th>Status</th><th>Age</th><th></th></tr></thead><tbody>"
-	for(var i=0;i<es.length;i++){
-		var op=""
-		var qty=es[i].qty;
-		var time_recorded=es[i].time_recorded
-		var id=es[i].id;
-		var order_no=es[i].order_no
-		var amount=cx(es[i].amount);
-		var status=es[i].status;
-		var member_name=es[i].member_name
-		var time_received=es[i].tr
-		var age=es[i].age+es[i].age2
-		months=age/30
-		days=age%30
 
-		if(months>=1)
-		{
-			age=months
-			if(months<=6){
-				if(months==1)
-					months="1 month"
-				else
-					months=months+", months"
-
-				if(days>0)
-					age=months+","+days+" days"
-
-				else
-					age=months
-			}
-			else{
-				age="-"
-			}
-		}
-		else{
-
-			if(age==1)
-				age="1 Day"
-			else
-				age=age+" days"
-		}
-		if(time_received)
-			status="Received"
-		else
-			age="#NA"
-		if(status=="Pending Approval"){
-			op+="<button class='btn btn-primary dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>Options</button>"
-			op+=" <div class='dropdown-menu'>"
-			op+="<a class='dropdown-item' href='#' onclick='remove_order("+id+")'>Cancel order</a>"
-		}
-		else if(status=="Delivered"){
-			op+="<button class='btn btn-primary dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>Options</button>"
-			op+=" <div class='dropdown-menu'>"
-			op+="<a class='dropdown-item' href='#' onclick='receive_order_dl("+id+")'>Receive Order</a>"
-		}
-
-		op+="</div></div>"
-		tr+="<tr><td>"+order_no+"</td><td>"+time_recorded+"</td><td>"+qty+"</td><td>"+amount+"</td><td class='leader-item'>"+member_name+"</td><td>"+status+"</td><td>"+age+"</td><td class='leader-item'>"+op+"</td></tr>"
-
-	}
-
-	$("#orders-table").html("</tbody>"+tr)
-	if(adata.me.role=="Chairperson"){
-		$(".leader-item").show()
-	}
-	else{
-		$(".leader-item").hide()
-	}
-	
-}
 function edit_stock_dl(index) {
 	var es=adata.es;
 	var qty=es[index].trays;
@@ -534,27 +443,28 @@ function remove_order(id) {
 		var data={group_id:group_id,id:id,url:"/group",rq:"remove-order"}
 		ajax_go(data,function (rst) {
 			display_succ("Order entry removed successfully")
-			var es=rst.orders
+			var es=rst.chicken_orders
 			load_orders(es)
 		})
 	}
 }
 function receive_order_dl(id) {
+
 	adata.id=id;
 	$("#receive-order-div").modal("show")
 }
 function receive_order() {
 	var age=$("#r-age").val()
 	var id=adata.id;
-	
-		var group_id=adata.group_id
-		var data={group_id:group_id,id:id,url:"/group",rq:"receive-order",age:age}
-		ajax_go(data,function (rst) {
-			$("#receive-order-div").modal("hide")
-			display_succ("Order marked as received successfully")
-			var es=rst.orders
-			load_orders(es)
-		})
+	var group_id=adata.group_id
+	var data={group_id:group_id,id:id,url:"/group",rq:"receive-order",age:age}
+
+	ajax_go(data,function (rst) {
+		$("#receive-order-div").modal("hide")
+		display_succ("Order marked as received successfully")
+		var es=rst.chicken_orders
+		load_orders(es)
+	})
 	
 }
 function get_defaults() {
@@ -569,9 +479,14 @@ function get_defaults() {
 		$("#group-name").text(gd[0].group_name)
 		$("#my-name").text(" "+rst.me.name)
 		adata.me=rst.me
+		if(adata.me.role=="Chairperson")
+			$(".leader-item").show()
+		else
+			$(".leader-item").hide()
 		$("#db-members-count").text(group_members.length)
 		$(".db-wallet").text("UGX "+cx(rst.wallet))
-		var clms=[{cn:"Name",fn:"name"},{cn:"Member No.",fn:"member_no"},{cn:"Primary Phone",fn:"phone"},
+		var clms=[{cn:"Name",fn:"name"},{cn:"Member No.",fn:"member_no"},
+			{cn:"Role",fn:"role"},{cn:"Primary Phone",fn:"phone"},
 			{cn:"Other Phone",fn:"phoneb"},{cn:"Email",fn:"email"},{cn:"Date of Birth",fn:"dob",ft:"date"},
 			{cn:"Registration Date",fn:"reg_date",ft:"date"},{cn:"Gender",fn:"gender"},
 			{cn:"District",fn:"district"},
@@ -727,57 +642,6 @@ function load_group_members(group_members,sel) {
 
 	gen_table(th,rs,"members-table","no-group-members",options)
 }
-function load_group_members_8(group_members,sel) {
-	//$(".child-div").hide()
-	//$("#members-div").show()
-	if(group_members.length==0){
-		$("#no-group-members").show()
-		$("#members-table").hide()
-		return 0
-	}
-	else{
-		$("#no-group-members").hide()
-		$("#members-table").show()
-	}	
-	adata.group_members=group_members;
-	var ops="<option value=0>Select a member</option>"
-
-	var tr="<thead><tr><th>#</th><th></th><th>Name</th><th class='leader-item'>Member No.</th><th class='leader-item'>Password</th><th>Role</th><th>Phone</th><th></th></tr></thead><tbody>"
-	for(var i=0;i<group_members.length;i++){
-		var name=group_members[i].name;
-		var phone=group_members[i].phone
-		var id=group_members[i].id;
-		var userid=group_members[i].id;
-		var role=group_members[i].role
-		var member_no=group_members[i].member_no
-		var reset_code=group_members[i].reset_code
-		var status=group_members[i].status;
-		if(status==1)
-			reset_code="******"
-		var ts=new Date()
-		var op="<div class='btn-group' >"
-		op+="<button class='btn btn-primary dropdown-toggle' data-toggle='dropdown' aria-haspopup='true' aria-expanded='false'>Options</button>"
-		op+=" <div class='dropdown-menu'>"
-		op+="<a class='dropdown-item' href='#' onclick='change_role_dl("+i+")'>Change Role</a>"
-		op+="<a class='dropdown-item' href='#' onclick='edit_user_dl("+i+")'>Edit Details</a>"
-		op+="<a class='dropdown-item' href='#' onclick='remove_member("+id+")'>Remove Member</a>"
-		op+="</div></div>"
-		tr+="<tr><td>"+(i+1)+"</td><td><img onerror='no_image(this)' style='width:50px;height:50px' src=\"/uploads/profiles/gm-"+id+"?ts="+ts+"\"></td><td>"+name+"</td><td class='leader-item'>"+member_no+"</td><td class='leader-item'>"+reset_code+"</td><td>"+role+"</td><td>"+phone+"</td><td class='leader-item'>"+op+"</td></tr>"
-		ops+="<option value="+userid+">"+name+"</option>"
-	}
-	$("#members-table").html("</tbody>"+tr)
-	if(!sel)
-		$("#members-div").show()
-
-	$("#member-id,#order-member-id,#cs-member-id").html(ops)
-	if(adata.me.role=="Chairperson"){
-		$(".leader-item").show()
-	}
-	else{
-		
-		$(".leader-item").hide()
-	}
-}
 function edit_user_dl(i){
 		clear_fields()
 		adata.memaxn="edit-group-member"
@@ -879,28 +743,46 @@ function remove_cs(id) {
 		})
 	}
 }
-function view_orders() {
+function view_chicken_orders() {
 	var group_id=$("#h-group-id").val()
-	var data={group_id:group_id,url:"/group",rq:"view-orders"}
+	var data={group_id:group_id,url:"/group",rq:"view-chicken-orders"}
 	ajax_go(data,function (rst) {
-		var orders=rst.group_orders;
+		var orders=rst.chicken_orders;
 		$(".child-div").hide()
 		$("#gp-orders-div").show()
 
 		load_orders(orders)
 	})
 }
+
 function load_orders(rst) {
 	var go=rst
+	for(var i=0;i<go.length;i++){
+		var age=go[i].age;
+		if(age==null){
+			go[i].age2="#NA"
+			continue;
+		}
+		var age2=go[i].age2+age;
+		age2=convert_from_days(age2)
+		go[i].age2=age2=age2
+	}
 	adata.go=go;
-	var hd=[{cn:"Order No.",fn:"order_no"},{cn:"Qty",fn:"qty"},{cn:"No. of Orders",fn:"no"},{cn:"Total",fn:"total",ft:"money"},{cn:"Method",fn:"method"},{cn:"Time Ordered",fn:"order_time"},{cn:"Status",fn:"status"},{cn:"Options",ft:"options"}]
-	var options=[{text:"Retry Paying",method:"retry_paying",cond:[{val:"Failed",fn:"status"}]},{text:"Order Details",method:"chicken_order_details"},{text:"Members' Orders",method:"view_order_breakdown"},{text:"Order Form",method:"view_order_form"}]
+	if(adata.me.role=="Chairperson"){
+		var hd=[{cn:"Order No.",fn:"order_no"},{cn:"Qty",fn:"qty"},{cn:"No. of Orders",fn:"no"},{cn:"Total",fn:"total",ft:"money"},{cn:"Method",fn:"method"},{cn:"Time Ordered",fn:"order_time"},{cn:"Status",fn:"status"},{cn:"Options",ft:"options"}]
+		var options=[{text:"Retry Paying",method:"retry_paying",cond:[{val:"Failed",fn:"status"}]},{text:"Order Details",method:"chicken_order_details"},{text:"Members' Orders",method:"view_chicken_orders_breakdown"},{text:"Order Form",method:"view_order_form"},{text:"Receive Order",method:"receive_order_dl",fn:"id",cond:[{val:"Delivered",fn:"status"}]}]
+	}
+	else{
+		var hd=[{cn:"Order No.",fn:"order_no"},{cn:"Qty",fn:"qty"},{cn:"Total",fn:"total",ft:"money"},{cn:"Method",fn:"method"},{cn:"Time Ordered",fn:"order_time"},{cn:"Status",fn:"status"},{cn:"Options",ft:"options"}]
+		var options=[{text:"Order Details",method:"chicken_order_details"}]
+	}
+	
 	gen_table(hd,go,"gp-orders-table","no-gp-orders",options)
 }
-function view_order_breakdown(index) {
+function view_chicken_orders_breakdown(index) {
 	var group_order_no=adata.go[index].order_no;
 	var group_id=$("#h-group-id").val()
-	var data={group_id:group_id,url:"/group",rq:"view-order-breakdown",group_order_no:group_order_no}
+	var data={group_id:group_id,url:"/group",rq:"view-chicken-orders-breakdown",group_order_no:group_order_no}
 	ajax_go(data,function (rst) {
 		var orders=rst.orders;
 		$(".child-div").hide()
@@ -911,8 +793,12 @@ function view_order_breakdown(index) {
 }
 function chicken_order_details(index) {
 	var order=adata.go[index]
-
-	var hd=[{cn:"Order No.",fn:"order_no"},{cn:"Qty",fn:"qty"},{cn:"No. of Orders",fn:"no"},{cn:"Total",fn:"total",ft:"money"},{cn:"Method",fn:"method"},{cn:"Time Ordered",fn:"order_time"},{cn:"Status",fn:"status"},{cn:"Description",fn:"message",cond:[{val:"",nval:"#NA",ct:'text'}]}]
+	if(adata.me.role=="Chairperson"){
+		var hd=[{cn:"Order No.",fn:"order_no"},{cn:"Qty",fn:"qty"},{cn:"No. of Orders",fn:"no"},{cn:"Total",fn:"total",ft:"money"},{cn:"Method",fn:"method"},{cn:"Time Ordered",fn:"order_time"},{cn:"Status",fn:"status"},{cn:"Age",fn:"age2"},{cn:"Description",fn:"message",cond:[{val:"",nval:"#NA",ct:'text'}]}]
+	}
+	else{
+		var hd=[{cn:"Order No.",fn:"order_no"},{cn:"Group Order No.",fn:"group_order_no"},{cn:"Qty",fn:"qty"},{cn:"Total",fn:"total",ft:"money"},{cn:"Method",fn:"method"},{cn:"Time Ordered",fn:"order_time"},{cn:"Status",fn:"status"},{cn:"Age",fn:"age2"},{cn:"Description",fn:"message",cond:[{val:"",nval:"#NA",ct:'text'}]}]
+	}
 	gen_table_mobile(hd,[order],'chicken-order-details-div')
 	$("#chicken-order-details").modal("show")
 }
@@ -986,7 +872,7 @@ function change_pay_method(method) {
 function close_cart(){
 	$("#cart-modal").modal("hide")
 	adata.cart_open=0
-	view_orders()
+	view_chicken_orders()
 }
 
 function complete_payment() {
@@ -1099,9 +985,7 @@ function retry_paying(index){
 	var ttotal=order.total;
 	var no=order.no;
 	adata.order_no=order.order_no
-
 	adata.rq="retry-paying"
-
 	adata.ttotal=ttotal;
 	adata.tqty=tqty
 	adata.no=no;

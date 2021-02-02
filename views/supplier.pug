@@ -2,15 +2,6 @@ extends layout
 block append head
     script(type='text/javascript', src='js/supplier.js')
 block content
-    div(class="alert alert-danger err-msg hd" role="alert")
-        p(class="err-content")
-       
-        span(class="close-x") &times
- 
-    div(class="alert alert-success success-msg hd" role="alert")
-        
-        p(class="success-content")
-        span(class="close-x") &times
     div(class="header")
         nav(class="navbar navbar-expand-lg navbar-dark bg-custom")
             a(class="navbar-brand a-dashboard" href="#")
@@ -57,7 +48,7 @@ block content
                                    
                                         span  Chicken Stock
 
-                                div(class="card-body cb-link" onclick="")
+                                div(class="card-body cb-link" onclick="get_stock()")
                                     p(align='center' )
                                         span(id="db-stock")
                         div(class="col mb-4")
@@ -70,7 +61,7 @@ block content
 
                                 div(class="card-body cb-link" onclick="view_chicken_orders('Out for Delivery')")
                                     p(align='center')
-                                        span(id="db-supply-orders-out-for-delivery")
+                                        span(id="db-chicken-orders-out-for-delivery")
 
                         div(class="col mb-4")
                             div(class="card")
@@ -82,15 +73,20 @@ block content
 
                                 div(class="card-body cb-link" onclick="view_chicken_orders('Delivered')")
                                     p(align='center')
-                                        span(id="db-supply-orders-delivered")
+                                        span(id="db-chicken-orders-delivered")
         div(class="child-div hd" id="chicken-orders-div")
             div(class="card card-prmary")
                 div(class="card-header bg-custom text-white")
-                    h5
-                        span(class="fa fa-filter")
-                        span(id="supply-orders-curr-status")
+                        
+                        span(class="fa fa-filter") 
+                        span Chicken Orders -
+                        span(id="chicken-orders-curr-status")
                 div(class="card-body") 
-                    button(class="btn btn-primary" onclick="change_supply_orders_status('Delivered')" id="chx-status-btn") Mark as Delivered
+                    div(class="dropdown")
+                        button(class="btn btn-primary dropdown-toggle" type="button" id="change-chicken-order-status-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false") Change Order Status
+                        div(class="dropdown-menu" aria-labelledby="change-chicken-order-status-btn")
+                            button(class="dropdown-item"    onclick="change_chicken_orders_status('Out for Delivery')") Pending Delivery
+                            button(class="dropdown-item"    onclick="change_chicken_orders_status('Delivered')") Mark as Delivered
                     p
                     div(class="table-responsive")
                         table(id="chicken-orders-table" class="table table-striped")

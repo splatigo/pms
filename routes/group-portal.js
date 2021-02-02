@@ -74,12 +74,6 @@ exports.index=function (req,res) {
 			res.send(data)
 		})
 	}
-	else if(rq=="get-group-orders"){
-		get_group_orders(data,function(){
-			data.res=0;data.req=0;
-			res.send(data)
-		})
-	}
 	else if(rq=="edit-group-member"){
 		db.edit_group_member(data,function () {
 			db.get_group_members(group_id,function (rst) {
@@ -121,19 +115,28 @@ exports.index=function (req,res) {
 		})
 	}
 	else if(rq=="view-egg-stock"){
-		view_egg_stock(data,function () {
+		get_egg_stock(data,function () {
 			data.res=0;data.req=0;
 			res.send(data)
 		})
 	}
-	else if(rq=="view-orders"){
-		get_group_orders(data,function () {
-			data.res=0;data.req=0;
-			res.send(data)
-		})
+	else if(rq=="view-chicken-orders"){
+		if(req.user.role=="Chairperson"){
+			get_chicken_orders(data,function () {
+				data.res=0;data.req=0;
+				res.send(data)
+			})
+		}
+		else{
+			get_chicken_orders_by_member_id(data,function () {
+				data.res=0;data.req=0;
+				res.send(data)
+			})
+		}
 	}
-	else if(rq=="view-order-breakdown"){
-		view_supply_orders(data,function () {
+	
+	else if(rq=="view-chicken-orders-breakdown"){
+		get_chicken_orders_bd(data,function () {
 			data.res=0;data.req=0;
 			res.send(data)
 		})
@@ -141,7 +144,7 @@ exports.index=function (req,res) {
 	
 	else if(rq=="add-stock"){
 		add_stock(data,function () {
-			view_egg_stock(data,function () {
+			get_egg_stock(data,function () {
 				get_stock_summary(data,function () {
 					data.res=0;data.req=0;
 					res.send(data)
@@ -151,7 +154,7 @@ exports.index=function (req,res) {
 	}
 	else if(rq=="edit-stock"){
 		edit_stock(data,function () {
-			view_egg_stock(data,function () {
+			get_egg_stock(data,function () {
 				get_stock_summary(data,function () {
 					data.res=0;data.req=0;
 					res.send(data)
@@ -161,7 +164,7 @@ exports.index=function (req,res) {
 	}
 	else if(rq=="remove-stock"){
 		remove_stock(data,function () {
-			view_egg_stock(data,function () {
+			get_egg_stock(data,function () {
 				get_stock_summary(data,function () {
 					data.res=0;data.req=0;
 					res.send(data)
@@ -171,7 +174,7 @@ exports.index=function (req,res) {
 	}
 	else if(rq=="remove-order"){
 		remove_order(data,function () {
-			get_group_orders(data,function () {
+			get_chicken_orders(data,function () {
 				data.res=0;data.req=0;
 				res.send(data)
 			})
@@ -179,7 +182,7 @@ exports.index=function (req,res) {
 	}
 	else if(rq=="receive-order"){
 		receive_order(data,function () {
-			get_group_orders(data,function () {
+			get_chicken_orders(data,function () {
 				data.res=0;data.req=0;
 				res.send(data)
 			})
@@ -213,18 +216,10 @@ exports.index=function (req,res) {
 	}
 	else if(rq=="edit-order"){
 		edit_order(data,function () {
-			view_supply_orders(data,function () {
+			get_chicken_orders(data,function () {
 				data.res=0;data.req=0;
 				res.send(data)
 				
-			})
-		})
-	}
-	else if(rq=="remove-stock"){
-		remove_order(data,function () {
-			view_supply_orders(data,function () {
-				data.res=0;data.req=0;
-				res.send(data)
 			})
 		})
 	}
@@ -349,11 +344,11 @@ function complete_payment(data,callback) {
   	data.order_err=0
   	var no=req.query.no
   	var member_id=req.user.id;
-  	var q="INSERT INTO chicken_payments(group_id,member_id,order_no,qty,amount,phone,method,no) VALUES(?,?,?,?,?,?,?,?)"
+  	var q="INSERT INTO chicken_orders(group_id,member_id,order_no,qty,amount,phone,method,no) VALUES(?,?,?,?,?,?,?,?)"
   	var arr=[group_id,member_id,order_no,qty,amount,phone,method,no]
   	if(req.query.rq=="retry-paying"){
 
-  		q="UPDATE chicken_payments SET status='Pending Approval',phone=?,method=? WHERE order_no=?"
+  		q="UPDATE chicken_orders SET status='Pending Approval',phone=?,method=? WHERE order_no=?"
   		arr=[phone,method,order_no]
   	}
 
@@ -367,7 +362,7 @@ function complete_payment(data,callback) {
 				if(data.wallet<amount){
 					data.order_err="Wallet balance is less than payment amount"
 					data.status="Failed"
-					db.update_payment_status(order_no,'Failed',phone,data.order_err,'Wallet',0,callback)
+					db.update_chicken_order_status(order_no,'Failed',phone,data.order_err,'Wallet',0,callback)
 				}
 				else{
 					var account_no="GM"+req.user.member_no
@@ -378,7 +373,7 @@ function complete_payment(data,callback) {
 					var wd=[account_no,amount,type,description,status,trans_id]
 					db.update_wallet(wd,function () {
 						data.status="Pending Delivery"
-						db.update_payment_status(order_no,'Pending Delivery',phone,'Payment Completed','Wallet',0,callback)
+						db.update_chicken_order_status(order_no,'Pending Delivery',phone,'Payment Completed','Wallet',0,callback)
 					})
 				}
 				
@@ -396,12 +391,10 @@ function complete_payment(data,callback) {
 			    "msg":trans_id,
 			    "user":"2341166770"
 		  	}
-
 		  	data.parameters=parameters
 			db.mm_topup(data,function (err) {
 				var status="Pending Approval"
 				var description='Pending Approval and Payment';
-
 				if(err){
 					status="Failed"
 					data.order_err=err;
@@ -410,7 +403,7 @@ function complete_payment(data,callback) {
 				}
 				data.status=status;
 				
-				db.update_payment_status(order_no,status,phone,description,'Mobile Money',0,callback)
+				db.update_chicken_order_status(order_no,status,phone,description,'Mobile Money',0,callback)
 			})
 		}
 		
@@ -461,7 +454,7 @@ function check_chicken_order_payment_status(i,data,pd,callback){
 			}
 			data.status=status
 
-			db.update_payment_status(order_no,status,phone,msg,'Mobile Money',0,function () {
+			db.update_chicken_order_status(order_no,status,phone,msg,'Mobile Money',0,function () {
 				check_chicken_order_payment_status(++i,data,pd,callback)
 			})
 		}
@@ -499,13 +492,14 @@ function record_chicken_status(data,callback) {
 		})
 	})
 }
-function get_group_orders(data,callback) {
+function get_chicken_orders(data,callback) {
 	var req=data.req;
 	var group_id=req.user.group_id;
 	get_chicken_orders_by_status(data,'Pending Approval',function(rst){
 		check_chicken_order_payment_status(0,data,rst,function(){
 			get_chicken_orders_by_status(data,0,function(rst){
-				data.group_orders=rst;
+				
+				data.chicken_orders=rst;
 				callback()
 			})
 			
@@ -517,16 +511,51 @@ function get_group_orders(data,callback) {
 function get_chicken_orders_by_status(data,status,callback){
 	var req=data.req;
 	var group_id=req.user.group_id;
-	if(status==0)
-		var q="SELECT order_no,no,qty,amount AS total,phone,status,message,method,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time FROM chicken_payments WHERE group_id=? ORDER BY time_recorded DESC"
+	if(status==0){
+		
+		var q="SELECT chicken_orders.id,order_no,no,qty,amount AS total,phone,status,message,method,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,age,DATEDIFF(now(),time_received) AS age2 FROM chicken_orders WHERE group_id=? ORDER BY time_recorded DESC"
+	}
 
 	else
-		var q="SELECT order_no,no,qty,amount AS total,phone,status,message,method,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time FROM chicken_payments WHERE group_id=? AND status=? ORDER BY time_recorded DESC"
+		var q="SELECT chicken_orders.id,order_no,no,qty,amount AS total,phone,status,message,method,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,age,DATEDIFF(now(),time_received) AS age2 FROM chicken_orders WHERE group_id=? AND status=? ORDER BY time_recorded DESC"
 	connection.query(q,[group_id,status],function(err,rst){
 		if(err)
 			console.log(err.sqlMessage)
 
 		callback(rst)
+	})
+}
+function get_chicken_orders_bd(data,callback) {
+	var req=data.req;
+	var group_id=req.user.group_id
+	var group_order_no=req.query.group_order_no
+	if(req.user.role=="Chairperson"){		
+		var q="SELECT chicken_orders_bd.id,chicken_orders_bd.order_no,chicken_orders.status,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS time_recorded,time_recorded AS ordered_on,chicken_orders_bd.qty,(price*chicken_orders_bd.qty) AS amount,name AS member_name,DATE_FORMAT(time_received,'%e %b %Y %l:%i %p') AS tr,age,DATEDIFF(now(),time_received) AS age2  FROM chicken_orders_bd,group_members,chicken_orders WHERE group_members.group_id=? AND group_members.id=chicken_orders_bd.member_id AND chicken_orders_bd.group_order_no=chicken_orders.order_no AND group_order_no=? ORDER BY ordered_on DESC"
+		var arr=[group_id,group_order_no]
+	
+	}
+	else{
+		var q="SELECT chicken_orders_bd.id,order_no,chicken_orders.status,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS time_recorded,time_recorded AS ordered_on,chicken_orders_bd.qty,(price*chicken_orders_bd.qty) AS amount,name AS member_name,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS tr,age,DATEDIFF(now(),time_received) AS age2 FROM chicken_orders_bd,group_members,chicken_orders  WHERE group_members.group_id=? AND member_id=? AND group_members.id=chicken_orders_bd.member_id AND chicken_orders_bd.group_order_no=chicken_orders.order_no ORDER BY ordered_on DESC"
+		var arr=[group_id,group_order_no,req.user.id]
+
+	}
+	connection.query(q,arr,function (err,rst) {
+		if(err)
+			return console.log(err.sqlMessage)
+		data.orders=rst;
+		callback()
+	})
+}
+function get_chicken_orders_by_member_id(data,callback) {
+	var req=data.req;
+	var q="SELECT chicken_orders_bd.id,chicken_orders_bd.order_no,chicken_orders.order_no AS group_order_no,phone,message,method,chicken_orders.status,time_recorded,chicken_orders_bd.qty,(price*chicken_orders_bd.qty) AS total,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS order_time,age,DATEDIFF(now(),time_received) AS age2 FROM chicken_orders_bd,chicken_orders  WHERE chicken_orders_bd.member_id=? AND chicken_orders_bd.group_order_no=chicken_orders.order_no ORDER BY time_recorded DESC"
+		var arr=[req.user.id]
+	connection.query(q,arr,function (err,rst) {
+		if(err)
+			return console.log(err.sqlMessage)
+		data.chicken_orders=rst;
+
+		callback()
 	})
 }
 function edit_chicken_status(data,callback) {
@@ -604,11 +633,11 @@ function get_orders_summary(data,callback) {
 	var group_id=req.user.group_id
 	
 	if(req.user.role=="Chairperson"){
-		var q="SELECT SUM(price*qty) AS amount,SUM(qty) AS qty,count(*) AS no,status FROM supply_orders WHERE group_id=? GROUP BY status"
+		var q="SELECT SUM(amount) AS amount,SUM(qty) AS qty,sum(no) AS no,status FROM chicken_orders WHERE group_id=? GROUP BY status"
 		var arr=[group_id]
 	}
 	else{
-		var q="SELECT SUM(price*qty) AS amount,SUM(qty) AS qty,count(*) AS no,status FROM supply_orders WHERE group_id=? AND member_id=? GROUP BY status"
+		var q="SELECT SUM(price*chicken_orders_bd.qty) AS amount,SUM(chicken_orders_bd.qty) AS qty,count(*) AS no,status FROM chicken_orders_bd,chicken_orders WHERE chicken_orders.order_no=chicken_orders_bd.group_order_no AND chicken_orders_bd.group_id=? AND chicken_orders_bd.member_id=? GROUP BY status"
 		var arr=[group_id,req.user.id]
 
 
@@ -664,7 +693,7 @@ function add_stock(data,callback) {
 		connection.query(q,[group_id,qty,stock_no,price,member_id],function (err,rst) {
 			if(err)
 				console.log(err.sqlMessage)
-			q="INSERT INTO egg_stock_status(order_id,status) VALUES(?,?)"
+			q="INSERT INTO egg_stock_status(stock_id,status) VALUES(?,?)"
 			connection.query(q,[rst.insertId,'Pending Approval'])
 			callback()
 		})
@@ -674,7 +703,7 @@ function remove_order(data,callback) {
 	var req=data.req;
 	var id=req.query.id;
 	
-	var q="DELETE FROM supply_orders WHERE id=?"
+	var q="DELETE FROM chicken_orders WHERE id=?"
 	connection.query(q,[id],function (err) {
 		if(err)
 			console.log(err.sqlMessage)
@@ -685,7 +714,7 @@ function receive_order(data,callback) {
 	var req=data.req;
 	var id=req.query.id;
 	var age=req.query.age
-	var q="UPDATE supply_orders SET time_received=DATE_ADD(now(),INTERVAL 8 HOUR),age=? WHERE id=?"
+	var q="UPDATE chicken_orders SET time_received=now(),age=? WHERE id=?"
 	connection.query(q,[age,id],function (err) {
 		if(err)
 			console.log(err.sqlMessage)
@@ -705,7 +734,7 @@ function add_order(i,data,callback) {
 	var price=req.query.price
 	var group_order_no=data.group_order_no
 	var status=data.status
-	var q="INSERT INTO supply_orders(group_id,qty,order_no,group_order_no,price,member_id,status) VALUES (?,?,?,?,?,?,?)"
+	var q="INSERT INTO chicken_orders_bd(group_id,qty,order_no,group_order_no,price,member_id,status) VALUES (?,?,?,?,?,?,?)"
 	connection.query(q,[group_id,qty,order_no,group_order_no,price,member_id,status],function (err,rst) {
 		if(err)
 			console.log(err.sqlMessage)
@@ -731,14 +760,14 @@ function edit_order(data,callback) {
 	var group_id=req.user.group_id
 	var qty=req.query.qty
 	var id=req.query.id
-	var q="UPDATE supply_orders SET qty=? WHERE id=?"
+	var q="UPDATE chicken_orders SET qty=? WHERE id=?"
 	connection.query(q,[qty,id],function (err,rst) {
 		if(err)
 			console.log(err.sqlMessage)
 		callback()
 	})
 }
-function view_egg_stock(data,callback) {
+function get_egg_stock(data,callback) {
 	var req=data.req;
 	var group_id=req.user.group_id
 	var arr=[group_id]
@@ -754,47 +783,3 @@ function view_egg_stock(data,callback) {
 		callback()
 	})
 }
-function view_supply_orders(data,callback) {
-	var req=data.req;
-	var group_id=req.user.group_id
-	var group_order_no=req.query.group_order_no
-	if(req.user.role=="Chairperson"){		
-		var q="SELECT supply_orders.id,order_no,supply_orders.status,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS time_recorded,time_recorded AS ordered_on,qty,(price*qty) AS amount,name AS member_name,DATE_FORMAT(time_received,'%e %b %Y %l:%i %p') AS tr,age,DATEDIFF(DATE_ADD(now(),INTERVAL 8 HOUR),time_received) AS age2  FROM supply_orders,group_members WHERE group_members.group_id=? AND group_members.id=supply_orders.member_id AND group_order_no=? ORDER BY ordered_on DESC"
-		var arr=[group_id,group_order_no]
-	
-	}
-	else{
-		var q="SELECT supply_orders.id,order_no,supply_orders.status,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS time_recorded,time_recorded AS ordered_on,qty,(price*qty) AS amount,name AS member_name,DATE_FORMAT(DATE_ADD(time_recorded,INTERVAL 8 HOUR),'%e %b %Y %l:%i %p') AS tr,age,DATEDIFF(DATE_ADD(now(),INTERVAL 8 HOUR),time_received) AS age2 FROM supply_orders,group_members  WHERE group_members.group_id=? AND member_id=? AND group_members.id=supply_orders.member_id ORDER BY ordered_on DESC"
-		var arr=[group_id,group_order_no,req.user.id]
-
-	}
-
-	connection.query(q,arr,function (err,rst) {
-		if(err)
-			return console.log(err.sqlMessage)
-		data.orders=rst;
-		callback()
-	})
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
